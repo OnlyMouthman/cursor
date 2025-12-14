@@ -1,0 +1,16 @@
+# 開發環境 Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# 安裝依賴
+COPY package*.json ./
+RUN npm install
+
+# 暴露端口
+EXPOSE 3000
+
+# 啟動開發伺服器
+CMD ["npm", "run", "dev"]
+
+

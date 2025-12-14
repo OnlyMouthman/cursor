@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output
+
+# Production
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
+*.log
+
+# 允許提交範例環境變數檔案（不包含敏感資訊）
+!.env.example
+!.env.sample
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+

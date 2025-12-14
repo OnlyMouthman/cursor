@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: web-frontend-prod
+    env_file:
+      - ./frontend/.env.production
+    networks:
+      - web-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: web-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - frontend
+    networks:
+      - web-network
+    restart: unless-stopped
+
+networks:
+  web-network:
+    driver: bridge
+
+
