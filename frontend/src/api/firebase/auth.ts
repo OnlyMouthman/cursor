@@ -7,6 +7,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  signInWithPopup,
+  GoogleAuthProvider,
   onAuthStateChanged,
   type User as FirebaseUser,
   type UserCredential
@@ -18,6 +20,7 @@ export type { FirebaseUser }
 export interface AuthService {
   signIn(email: string, password: string): Promise<UserCredential>
   signUp(email: string, password: string): Promise<UserCredential>
+  signInWithGoogle(): Promise<UserCredential>
   signOut(): Promise<void>
   getCurrentUser(): Promise<FirebaseUser | null>
   onAuthStateChange(callback: (user: FirebaseUser | null) => void): () => void
@@ -34,12 +37,18 @@ class FirebaseAuthService implements AuthService {
     return await createUserWithEmailAndPassword(auth, email, password)
   }
 
+  async signInWithGoogle(): Promise<UserCredential> {
+    const auth = getFirebaseAuth()
+    const provider = new GoogleAuthProvider()
+    return await signInWithPopup(auth, provider)
+  }
+
   async signOut(): Promise<void> {
     const auth = getFirebaseAuth()
     return await signOut(auth)
   }
 
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<FirebaseUser | null> {
     const auth = getFirebaseAuth()
     return new Promise((resolve) => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
