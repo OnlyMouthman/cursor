@@ -49,7 +49,19 @@ const routes: RouteRecordRaw[] = [
         path: 'users',
         name: 'ManageUsers',
         component: () => import('@/views/manage/UsersView.vue'),
-        meta: { requiresAuth: true, requiresPermission: 'canManageUsers' }
+        meta: { requiresAuth: true, requiresPermission: 'user.view' }
+      },
+      {
+        path: 'roles',
+        name: 'ManageRoles',
+        component: () => import('@/views/manage/RolesView.vue'),
+        meta: { requiresAuth: true, requiresPermission: 'role.view' }
+      },
+      {
+        path: 'settings',
+        name: 'ManageSettings',
+        component: () => import('@/views/manage/SettingsView.vue'),
+        meta: { requiresAuth: true, requiresPermission: 'settings.view' }
       }
     ]
   },

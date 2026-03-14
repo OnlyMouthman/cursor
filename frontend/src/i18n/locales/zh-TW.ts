@@ -33,6 +33,7 @@ export default {
     backToFront: '回到前台',
     dashboard: '儀表板',
     userManagement: '使用者管理',
+    roleManagement: '角色管理',
     settings: '設定',
     manageTitle: '後台管理'
   },
@@ -78,6 +79,21 @@ export default {
       active: '啟用',
       disabled: '停用'
     }
+  },
+  roles: {
+    description: '檢視與管理角色及其權限',
+    noRoles: '尚無角色資料',
+    name: '名稱',
+    slug: '識別碼',
+    descriptionColumn: '說明',
+    permissionCount: '權限數',
+    actions: '操作',
+    addRole: '新增角色',
+    editRole: '編輯',
+    deleteRole: '刪除',
+    permissions: '權限',
+    confirmDelete: '確定要刪除此角色？',
+    cannotDeleteSuperAdmin: '不可刪除 SuperAdmin 角色'
   }
 }
 

@@ -42,6 +42,7 @@ Thumbs.db
 .firebase/
 firebase-debug.log
 firestore-debug.log
+scripts/serviceAccountKey.json
 
 # Playwright
 test-results/

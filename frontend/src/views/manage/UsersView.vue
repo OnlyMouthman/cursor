@@ -28,13 +28,11 @@
             {{ $t('users.role') }}
           </label>
           <select
-            v-model="filterRole"
+            v-model="filterRoleId"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">{{ $t('users.allRoles') }}</option>
-            <option value="admin">{{ $t('users.roles.admin') }}</option>
-            <option value="editor">{{ $t('users.roles.editor') }}</option>
-            <option value="viewer">{{ $t('users.roles.viewer') }}</option>
+            <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
           </select>
         </div>
 
@@ -129,17 +127,15 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <select
                 v-if="canEditUser(user)"
-                v-model="user.role"
-                @change="handleRoleChange(user)"
+                :value="effectiveRoleId(user)"
+                @change="(e) => handleRoleChange(user, (e.target as HTMLSelectElement).value)"
                 :disabled="updatingUsers.has(user.uid)"
                 class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500"
               >
-                <option value="admin">{{ $t('users.roles.admin') }}</option>
-                <option value="editor">{{ $t('users.roles.editor') }}</option>
-                <option value="viewer">{{ $t('users.roles.viewer') }}</option>
+                <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
               </select>
               <span v-else class="text-sm text-gray-900">
-                {{ $t(`users.roles.${user.role}`) }}
+                {{ roleName(user) }}
               </span>
             </td>
 
@@ -196,21 +192,37 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
+import { usePermissionStore } from '@/stores/permission'
 import { usersAPI } from '@/api/users'
-import { hasPermission } from '@/utils/permissions'
-import type { UserDocument, UserRole, UserStatus } from '@/types/user'
+import { listRoles } from '@/api/firebase/rbac'
+import type { UserDocument, UserStatus } from '@/types/user'
+import type { Role } from '@/types/rbac'
 import { formatDate } from '@/utils/index'
 
 const { t } = useI18n()
 const userStore = useUserStore()
+const permissionStore = usePermissionStore()
 
 const users = ref<UserDocument[]>([])
+const roleOptions = ref<Role[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 const searchQuery = ref('')
-const filterRole = ref<UserRole | ''>('')
+const filterRoleId = ref<string>('')
 const filterStatus = ref<UserStatus | ''>('')
 const updatingUsers = ref<Set<string>>(new Set())
+
+function effectiveRoleId(user: UserDocument): string {
+  if (user.roleId) return user.roleId
+  const r = roleOptions.value.find((x) => x.slug === user.role)
+  return r?.id ?? ''
+}
+
+function roleName(user: UserDocument): string {
+  const id = effectiveRoleId(user)
+  const r = roleOptions.value.find((x) => x.id === id)
+  return r?.name ?? user.role
+}
 
 // 過濾後的使用者列表
 const filteredUsers = computed(() => {
@@ -226,9 +238,9 @@ const filteredUsers = computed(() => {
     )
   }
 
-  // 角色篩選
-  if (filterRole.value) {
-    result = result.filter(user => user.role === filterRole.value)
+  // 角色篩選（依 roleId 或 role）
+  if (filterRoleId.value) {
+    result = result.filter(user => effectiveRoleId(user) === filterRoleId.value)
   }
 
   // 狀態篩選
@@ -239,9 +251,9 @@ const filteredUsers = computed(() => {
   return result
 })
 
-// 檢查是否可以編輯使用者（admin 且不是自己）
+// 檢查是否可以編輯使用者（具 user.edit 權限且不是自己）
 const canEditUser = (user: UserDocument): boolean => {
-  if (!userStore.isAdmin) return false
+  if (!permissionStore.can('user.edit')) return false
   if (user.uid === userStore.user?.uid) return false // 不能編輯自己
   return true
 }
@@ -253,7 +265,7 @@ const loadUsers = async () => {
 
   try {
     users.value = await usersAPI.list({
-      role: filterRole.value || undefined,
+      roleId: filterRoleId.value || undefined,
       status: filterStatus.value || undefined
     })
   } catch (err: any) {
@@ -265,21 +277,19 @@ const loadUsers = async () => {
 }
 
 // 處理角色變更
-const handleRoleChange = async (user: UserDocument) => {
-  if (!canEditUser(user)) return
+const handleRoleChange = async (user: UserDocument, newRoleId: string) => {
+  if (!canEditUser(user) || !newRoleId) return
 
   updatingUsers.value.add(user.uid)
 
   try {
-    await usersAPI.updateRole({
+    await usersAPI.updateRoleId({
       uid: user.uid,
-      role: user.role
+      roleId: newRoleId
     })
-    // 重新載入列表以取得最新資料
     await loadUsers()
   } catch (err: any) {
     error.value = err.message || t('users.updateError')
-    // 恢復原值
     await loadUsers()
   } finally {
     updatingUsers.value.delete(user.uid)
@@ -315,7 +325,8 @@ const handleToggleStatus = async (user: UserDocument) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  roleOptions.value = await listRoles()
   loadUsers()
 })
 </script>

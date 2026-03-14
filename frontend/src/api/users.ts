@@ -13,6 +13,7 @@ import {
   getUser,
   getUsers,
   updateUserRole,
+  updateUserRoleId,
   updateUserStatus,
   updateLastLogin,
   syncUserProfile
@@ -21,6 +22,7 @@ import type {
   UserDocument,
   UserListParams,
   UpdateUserRoleParams,
+  UpdateUserRoleIdParams,
   UpdateUserStatusParams
 } from '@/types/user'
 
@@ -54,10 +56,14 @@ export interface UsersAPI {
   ): Promise<UserDocument>
 
   /**
-   * 更新使用者角色
-   * @param params - 更新參數
+   * 更新使用者角色（以 slug 指定，相容舊版）
    */
   updateRole(params: UpdateUserRoleParams): Promise<void>
+
+  /**
+   * 更新使用者角色（RBAC：以 roleId 指定）
+   */
+  updateRoleId(params: UpdateUserRoleIdParams): Promise<void>
 
   /**
    * 更新使用者狀態（啟用/停用）
@@ -104,6 +110,10 @@ class UsersAPIImpl implements UsersAPI {
 
   async updateRole(params: UpdateUserRoleParams): Promise<void> {
     return await updateUserRole(params)
+  }
+
+  async updateRoleId(params: UpdateUserRoleIdParams): Promise<void> {
+    return await updateUserRoleId(params)
   }
 
   async updateStatus(params: UpdateUserStatusParams): Promise<void> {

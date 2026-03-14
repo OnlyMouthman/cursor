@@ -22,6 +22,7 @@ import type {
   UserDocument,
   UserListParams,
   UpdateUserRoleParams,
+  UpdateUserRoleIdParams,
   UpdateUserStatusParams
 } from '@/types/user'
 
@@ -35,6 +36,7 @@ function docToUser(docSnap: QueryDocumentSnapshot<DocumentData>): UserDocument {
     email: data.email || '',
     displayName: data.displayName || '',
     photoURL: data.photoURL || '',
+    roleId: data.roleId ?? null,
     role: data.role || 'viewer',
     status: data.status || 'active',
     createdAt: data.createdAt?.toDate() || new Date(),
@@ -65,7 +67,9 @@ export async function createOrUpdateUser(
     status: userData.status || 'active',
     lastLoginAt: serverTimestamp()
   }
-
+  if (userData.roleId !== undefined) {
+    data.roleId = userData.roleId
+  }
   if (isNewUser) {
     data.createdAt = serverTimestamp()
   }
@@ -106,8 +110,10 @@ export async function getUsers(params?: UserListParams): Promise<UserDocument[]>
   // 構建查詢
   const constraints: any[] = []
 
-  // 角色篩選
-  if (params?.role) {
+  // 角色篩選（優先 roleId）
+  if (params?.roleId) {
+    constraints.push(where('roleId', '==', params.roleId))
+  } else if (params?.role) {
     constraints.push(where('role', '==', params.role))
   }
 
@@ -149,6 +155,22 @@ export async function updateUserRole(params: UpdateUserRoleParams): Promise<void
   // 2. 不能更新自己的 role
   await updateDoc(userRef, {
     role: params.role
+  })
+}
+
+/**
+ * 更新使用者角色（RBAC：以 roleId 指定，並同步 role slug）
+ */
+export async function updateUserRoleId(params: UpdateUserRoleIdParams): Promise<void> {
+  const { getRole } = await import('./rbac')
+  const roleDoc = await getRole(params.roleId)
+  const slug = roleDoc?.slug ?? 'viewer'
+
+  const firestore = getFirebaseFirestore()
+  const userRef = doc(firestore, 'users', params.uid)
+  await updateDoc(userRef, {
+    roleId: params.roleId,
+    role: slug
   })
 }
 

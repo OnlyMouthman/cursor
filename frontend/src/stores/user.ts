@@ -9,6 +9,7 @@ import type { User as FirebaseUser } from 'firebase/auth'
 import type { UserDocument } from '@/types/user'
 import { usersAPI } from '@/api/users'
 import { authAPI } from '@/api/auth'
+import { usePermissionStore } from '@/stores/permission'
 
 export const useUserStore = defineStore('user', () => {
   // Firebase Auth 使用者
@@ -50,11 +51,12 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /**
-   * 清除使用者資料
+   * 清除使用者資料（含 RBAC 權限快取）
    */
   function clearUser() {
     user.value = null
     currentUser.value = null
+    usePermissionStore().clear()
   }
 
   function setLoading(value: boolean) {
@@ -105,6 +107,11 @@ export const useUserStore = defineStore('user', () => {
           
           if (userDoc) {
             setCurrentUser(userDoc)
+            await usePermissionStore().loadForUser(
+              firebaseUser.uid,
+              userDoc.roleId,
+              userDoc.role
+            )
           }
         } catch (error) {
           console.error('Failed to sync user data:', error)

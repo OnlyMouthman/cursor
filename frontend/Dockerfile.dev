@@ -3,7 +3,7 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# 安裝依賴
+# 安裝依賴（使用 npm ci 在無網路時可依賴既有 cache）
 COPY package*.json ./
 RUN npm install
 

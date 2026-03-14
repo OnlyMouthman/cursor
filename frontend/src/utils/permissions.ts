@@ -1,118 +1,64 @@
 /**
- * 權限管理工具
- * 
- * 設計理念：
- * 1. 現在使用 role 映射到 permissions
- * 2. 未來可擴充為細粒度 permissions（存在 Firestore 或由後端發 claim）
- * 3. 不綁死在 UI，可切換實作方式
+ * 權限檢查 Helper（RBAC 規格）
+ * 使用 module.action 格式（如 user.view, user.edit）
+ * 委派給 permission store；SuperAdmin 一律通過
  */
 
-import type { UserRole, Permission, UserDocument } from '@/types/user'
-
-/**
- * Role 到 Permissions 的映射
- * 未來可改為從 Firestore 或後端 API 取得
- */
-const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  admin: [
-    'canManageUsers',
-    'canEditProjects',
-    'canViewReports',
-    'canManageSettings'
-  ],
-  editor: [
-    'canEditProjects',
-    'canViewReports'
-  ],
-  viewer: [
-    'canViewReports'
-  ]
-}
+import { usePermissionStore } from '@/stores/permission'
+import type { PermissionSlug } from '@/types/rbac'
+import type { UserDocument } from '@/types/user'
 
 /**
  * 檢查使用者是否有特定權限
- * 
- * @param user - 使用者文件（含 role 和可選的 permissions）
- * @param permission - 要檢查的權限
- * @returns 是否有權限
- * 
- * @example
- * ```typescript
- * const user = { role: 'admin', ... }
- * if (hasPermission(user, 'canManageUsers')) {
- *   // 允許管理使用者
- * }
- * ```
+ * 需在 permission store 已為該使用者載入後使用（通常由 user store init 觸發）
  */
 export function hasPermission(
   user: UserDocument | null | undefined,
-  permission: Permission
+  permission: PermissionSlug
 ): boolean {
-  if (!user) {
-    return false
-  }
+  if (!user) return false
+  if (user.status === 'disabled') return false
 
-  // 如果使用者被停用，沒有權限
-  if (user.status === 'disabled') {
-    return false
-  }
-
-  // 優先檢查 permissions 陣列（未來擴充用）
-  if (user.permissions && user.permissions.length > 0) {
-    return user.permissions.includes(permission)
-  }
-
-  // 否則使用 role 映射
-  const rolePermissions = ROLE_PERMISSIONS[user.role] || []
-  return rolePermissions.includes(permission)
+  const permStore = usePermissionStore()
+  if (permStore.loadedForUid !== user.uid) return false
+  return permStore.can(permission)
 }
 
 /**
  * 檢查使用者是否有任一權限
- * 
- * @param user - 使用者文件
- * @param permissions - 要檢查的權限陣列
- * @returns 是否有任一權限
  */
 export function hasAnyPermission(
   user: UserDocument | null | undefined,
-  permissions: Permission[]
+  permissions: PermissionSlug[]
 ): boolean {
-  return permissions.some(perm => hasPermission(user, perm))
+  if (!user || user.status === 'disabled') return false
+  const permStore = usePermissionStore()
+  if (permStore.loadedForUid !== user.uid) return false
+  return permissions.some(perm => permStore.can(perm))
 }
 
 /**
  * 檢查使用者是否有所有權限
- * 
- * @param user - 使用者文件
- * @param permissions - 要檢查的權限陣列
- * @returns 是否有所有權限
  */
 export function hasAllPermissions(
   user: UserDocument | null | undefined,
-  permissions: Permission[]
+  permissions: PermissionSlug[]
 ): boolean {
-  return permissions.every(perm => hasPermission(user, perm))
+  if (!user || user.status === 'disabled') return false
+  const permStore = usePermissionStore()
+  if (permStore.loadedForUid !== user.uid) return false
+  return permissions.every(perm => permStore.can(perm))
 }
 
 /**
- * 取得使用者的所有權限
- * 
- * @param user - 使用者文件
- * @returns 權限陣列
+ * 取得當前使用者的權限列表（由 permission store 提供）
+ * 若尚未載入則回傳空陣列
  */
-export function getUserPermissions(user: UserDocument | null | undefined): Permission[] {
-  if (!user || user.status === 'disabled') {
-    return []
-  }
+export function getUserPermissions(user: UserDocument | null | undefined): PermissionSlug[] {
+  if (!user || user.status === 'disabled') return []
 
-  // 優先使用 permissions 陣列
-  if (user.permissions && user.permissions.length > 0) {
-    return user.permissions as Permission[]
-  }
-
-  // 否則使用 role 映射
-  return ROLE_PERMISSIONS[user.role] || []
+  const permStore = usePermissionStore()
+  if (permStore.loadedForUid !== user.uid) return []
+  const slugs = permStore.permissionSlugs
+  return slugs[0] === '*' ? [] : [...slugs]
 }
-
-

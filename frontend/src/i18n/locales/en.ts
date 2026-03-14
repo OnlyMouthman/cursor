@@ -33,6 +33,7 @@ export default {
     backToFront: 'Back to Frontend',
     dashboard: 'Dashboard',
     userManagement: 'User Management',
+    roleManagement: 'Role Management',
     settings: 'Settings',
     manageTitle: 'Management'
   },
@@ -78,6 +79,21 @@ export default {
       active: 'Active',
       disabled: 'Disabled'
     }
+  },
+  roles: {
+    description: 'View and manage roles and their permissions',
+    noRoles: 'No roles yet',
+    name: 'Name',
+    slug: 'Slug',
+    descriptionColumn: 'Description',
+    permissionCount: 'Permissions',
+    actions: 'Actions',
+    addRole: 'Add Role',
+    editRole: 'Edit',
+    deleteRole: 'Delete',
+    permissions: 'Permissions',
+    confirmDelete: 'Delete this role?',
+    cannotDeleteSuperAdmin: 'Cannot delete SuperAdmin role'
   }
 }
 
