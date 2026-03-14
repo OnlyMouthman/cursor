@@ -11,6 +11,9 @@
 import { firestoreClient } from './firebase/firestore'
 import type { ApiClient, ApiResponse, RequestConfig } from './types'
 
+// 重新導出類型，方便外部使用
+export type { ApiResponse, ApiError, RequestConfig, ApiClient } from './types'
+
 /**
  * 統一的 API 客戶端
  * 目前使用 Firestore 實作，未來可切換為 HTTP 客戶端
@@ -43,7 +46,9 @@ class ApiClientImpl implements ApiClient {
       return firestoreClient.get<T>(path, config)
     } else {
       // 列表查詢：users
-      return firestoreClient.list<T>(parts[0], config)
+      // 注意：列表查詢返回 T[]，但這裡需要返回 T，所以使用類型斷言
+      const result = await firestoreClient.list<T>(parts[0], config)
+      return result as ApiResponse<T>
     }
   }
 

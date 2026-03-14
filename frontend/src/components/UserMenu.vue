@@ -51,7 +51,7 @@
           fill="#EA4335"
         />
       </svg>
-      <span>Google 登入</span>
+      <span>{{ $t('auth.loginWithGoogle') }}</span>
     </button>
 
     <!-- 已登入：顯示頭像和下拉選單 -->
@@ -80,8 +80,32 @@
         class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
       >
         <div class="px-4 py-2 border-b border-gray-100">
-          <p class="text-sm font-medium text-gray-900">{{ userStore.displayName || '使用者' }}</p>
+          <p class="text-sm font-medium text-gray-900">{{ userStore.displayName || $t('auth.user') }}</p>
           <p class="text-xs text-gray-500 truncate">{{ userStore.email }}</p>
+          <div class="mt-1 flex items-center gap-2">
+            <span
+              :class="[
+                'px-2 py-0.5 text-xs font-medium rounded',
+                userStore.role === 'admin'
+                  ? 'bg-purple-100 text-purple-700'
+                  : userStore.role === 'editor'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-700'
+              ]"
+            >
+              {{ $t(`users.roles.${userStore.role}`) }}
+            </span>
+            <span
+              :class="[
+                'px-2 py-0.5 text-xs font-medium rounded',
+                userStore.status === 'active'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              ]"
+            >
+              {{ $t(`users.statuses.${userStore.status}`) }}
+            </span>
+          </div>
         </div>
 
         <!-- 根據 context 顯示不同選項 -->
@@ -104,7 +128,7 @@
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          進入後台
+          {{ $t('menu.enterManage') }}
         </button>
 
         <button
@@ -120,7 +144,7 @@
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
             />
           </svg>
-          回到前台
+          {{ $t('menu.backToFront') }}
         </button>
 
         <div class="border-t border-gray-100 my-1"></div>
@@ -137,7 +161,7 @@
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             />
           </svg>
-          登出
+          {{ $t('auth.logout') }}
         </button>
       </div>
     </div>
@@ -147,8 +171,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
 import { authAPI } from '@/api/auth'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   context: 'front' | 'manage'
@@ -197,7 +224,7 @@ const handleLogin = async () => {
     router.push(redirect || '/')
   } catch (error: any) {
     console.error('Login failed:', error)
-    alert('登入失敗：' + (error.message || '未知錯誤'))
+    alert(t('auth.loginFailed') + ': ' + (error.message || t('common.error')))
   } finally {
     userStore.setLoading(false)
   }
@@ -211,7 +238,7 @@ const handleLogout = async () => {
     router.push('/')
   } catch (error: any) {
     console.error('Logout failed:', error)
-    alert('登出失敗：' + (error.message || '未知錯誤'))
+    alert(t('auth.logoutFailed') + ': ' + (error.message || t('common.error')))
   }
 }
 

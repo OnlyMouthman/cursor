@@ -8,8 +8,9 @@
         </router-link>
       </div>
 
-      <!-- 右側：登入狀態或登入按鈕 -->
-      <div class="flex items-center">
+      <!-- 右側：語言選擇器和登入狀態或登入按鈕 -->
+      <div class="flex items-center gap-3">
+        <LanguageSwitcher />
         <UserMenu :context="context" />
       </div>
     </div>
@@ -18,6 +19,7 @@
 
 <script setup lang="ts">
 import UserMenu from './UserMenu.vue'
+import LanguageSwitcher from './LanguageSwitcher.vue'
 
 defineProps<{
   context: 'front' | 'manage'

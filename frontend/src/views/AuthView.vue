@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-      <h1 class="text-2xl font-bold text-center mb-6">登入</h1>
+      <h1 class="text-2xl font-bold text-center mb-6">{{ $t('auth.login') }}</h1>
       
       <button
         @click="handleGoogleLogin"
@@ -52,7 +52,7 @@
             fill="#EA4335"
           />
         </svg>
-        <span>{{ userStore.loading ? '登入中...' : '使用 Google 登入' }}</span>
+        <span>{{ userStore.loading ? $t('auth.loggingIn') : $t('auth.loginWithGoogle') }}</span>
       </button>
 
       <div v-if="error" class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
@@ -65,8 +65,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
 import { authAPI } from '@/api/auth'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -86,7 +89,7 @@ const handleGoogleLogin = async () => {
     const redirect = (route.query.redirect as string) || '/manage'
     router.push(redirect)
   } catch (err: any) {
-    error.value = err.message || '登入失敗，請稍後再試'
+    error.value = err.message || t('auth.loginFailed')
     console.error('Login error:', err)
   } finally {
     userStore.setLoading(false)

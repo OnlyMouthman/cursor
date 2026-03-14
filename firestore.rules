@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: 檢查使用者是否為 admin
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Helper function: 檢查使用者是否為啟用狀態
+    function isActive() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
+    }
+    
+    // Helper function: 檢查是否為自己的文件
+    function isOwnDocument(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // 讀取規則
+      allow read: if request.auth != null && (
+        // 可以讀取自己的文件
+        isOwnDocument(userId) ||
+        // admin 可以讀取所有文件
+        isAdmin()
+      );
+      
+      // 建立規則（首次登入時自動建立）
+      allow create: if request.auth != null && 
+                     isOwnDocument(userId) &&
+                     // 只能建立自己的文件
+                     request.resource.data.uid == request.auth.uid &&
+                     // 預設 role 必須是 viewer
+                     request.resource.data.role == 'viewer' &&
+                     // 預設 status 必須是 active
+                     request.resource.data.status == 'active';
+      
+      // 更新規則
+      allow update: if request.auth != null && (
+        // 可以更新自己的基本資料（displayName, photoURL, email, lastLoginAt）
+        (isOwnDocument(userId) &&
+         // 不能更新 role 和 status
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status'])) ||
+        // admin 可以更新所有欄位，但不能更新自己的 role/status
+        (isAdmin() &&
+         (!isOwnDocument(userId) || 
+          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status']))))
+      );
+      
+      // 刪除規則（通常不允許刪除，但保留給 admin）
+      allow delete: if false; // 不允許刪除使用者文件
+    }
+    
+    // 其他 collection 的規則可以在這裡添加
+    // match /otherCollection/{document=**} {
+    //   allow read, write: if request.auth != null && isActive();
+    // }
+  }
+}
+
+

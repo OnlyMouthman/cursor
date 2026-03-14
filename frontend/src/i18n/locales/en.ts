@@ -10,7 +10,10 @@ export default {
     search: 'Search',
     loading: 'Loading...',
     error: 'Error occurred',
-    success: 'Success'
+    success: 'Success',
+    language: 'Language',
+    expand: 'Expand',
+    collapse: 'Collapse'
   },
   auth: {
     login: 'Login',
@@ -18,7 +21,63 @@ export default {
     register: 'Register',
     email: 'Email',
     password: 'Password',
-    confirmPassword: 'Confirm Password'
+    confirmPassword: 'Confirm Password',
+    loginWithGoogle: 'Sign in with Google',
+    loggingIn: 'Logging in...',
+    loginFailed: 'Login failed, please try again',
+    logoutFailed: 'Logout failed',
+    user: 'User'
+  },
+  menu: {
+    enterManage: 'Enter Management',
+    backToFront: 'Back to Frontend',
+    dashboard: 'Dashboard',
+    userManagement: 'User Management',
+    settings: 'Settings',
+    manageTitle: 'Management'
+  },
+  manage: {
+    dashboard: 'Management Dashboard',
+    totalUsers: 'Total Users',
+    todayVisits: 'Today Visits',
+    systemStatus: 'System Status',
+    normal: 'Normal'
+  },
+  pages: {
+    about: 'About',
+    aboutDescription: 'This is the about page.'
+  },
+  users: {
+    title: 'User Management',
+    description: 'Manage system users, roles and permissions',
+    search: 'Search',
+    searchPlaceholder: 'Search by name or email',
+    role: 'Role',
+    status: 'Status',
+    user: 'User',
+    email: 'Email',
+    lastLogin: 'Last Login',
+    actions: 'Actions',
+    createdAt: 'Created At',
+    allRoles: 'All Roles',
+    allStatuses: 'All Statuses',
+    noUsers: 'No users found',
+    loadError: 'Failed to load users',
+    updateError: 'Update failed',
+    noPermission: 'No Permission',
+    cannotDisableSelf: 'Cannot disable your own account',
+    never: 'Never',
+    enable: 'Enable',
+    disable: 'Disable',
+    roles: {
+      admin: 'Admin',
+      editor: 'Editor',
+      viewer: 'Viewer'
+    },
+    statuses: {
+      active: 'Active',
+      disabled: 'Disabled'
+    }
   }
 }
 

@@ -8,8 +8,7 @@ import {
   uploadBytes,
   uploadBytesResumable,
   getDownloadURL,
-  deleteObject,
-  type UploadResult
+  deleteObject
 } from 'firebase/storage'
 import { getFirebaseStorage } from './config'
 

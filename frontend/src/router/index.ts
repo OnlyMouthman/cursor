@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { hasPermission } from '@/utils/permissions'
 
 // Layouts
 import FrontLayout from '@/layouts/FrontLayout.vue'
@@ -44,12 +45,12 @@ const routes: RouteRecordRaw[] = [
         name: 'ManageDashboard',
         component: ManageDashboard
       },
-      // 其他後台路由可以在這裡添加
-      // {
-      //   path: 'users',
-      //   name: 'ManageUsers',
-      //   component: () => import('@/views/manage/UsersView.vue')
-      // }
+      {
+        path: 'users',
+        name: 'ManageUsers',
+        component: () => import('@/views/manage/UsersView.vue'),
+        meta: { requiresAuth: true, requiresPermission: 'canManageUsers' }
+      }
     ]
   },
   {
@@ -63,20 +64,45 @@ const router = createRouter({
   routes
 })
 
-// Auth Guard
-router.beforeEach((to: any, _from: any, next: any) => {
+// Auth Guard（async：需等待 Firebase Auth + Firestore profile 就緒後再檢查權限）
+router.beforeEach(async (to: any, _from: any, next: any) => {
   const userStore = useUserStore()
 
-  // 檢查是否需要登入
-  if (to.meta.requiresAuth && !userStore.isAuthenticated) {
-    // 儲存原本要前往的路徑，登入後可以導向
-    next({
-      path: '/auth',
-      query: { redirect: to.fullPath }
-    })
-  } else {
-    next()
+  if (to.meta.requiresAuth) {
+    // 先等待 auth 與 Firestore profile 載入完成，避免 production 直連 /manage/users 時
+    // currentUser 尚未載入而被誤判為無權限並靜默導向 /manage
+    try {
+      await userStore.waitForAuthReady()
+    } catch {
+      // 逾時仍放行，由下方 isAuthenticated / 權限檢查決定
+    }
+
+    if (!userStore.isAuthenticated) {
+      next({
+        path: '/auth',
+        query: { redirect: to.fullPath }
+      })
+      return
+    }
+
+    if (!userStore.isActive) {
+      next('/')
+      return
+    }
+
+    if (to.meta.requiresPermission) {
+      const hasAccess = hasPermission(
+        userStore.currentUser,
+        to.meta.requiresPermission as any
+      )
+      if (!hasAccess) {
+        next('/manage')
+        return
+      }
+    }
   }
+
+  next()
 })
 
 export default router

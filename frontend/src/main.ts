@@ -9,9 +9,8 @@ import './styles/main.css'
 import { initFirebase } from './api/firebase/config'
 initFirebase()
 
-// 初始化使用者狀態（監聽 Firebase Auth 狀態變化）
+// 初始化使用者狀態
 import { useUserStore } from './stores/user'
-import { authAPI } from './api/auth'
 
 const app = createApp(App)
 
@@ -19,11 +18,9 @@ app.use(pinia)
 app.use(router)
 app.use(i18n)
 
-// 監聽 Firebase Auth 狀態變化
-authAPI.onAuthStateChange((user) => {
-  const userStore = useUserStore()
-  userStore.setUser(user)
-})
+// 初始化使用者 store（會自動監聽 Firebase Auth 狀態變化）
+const userStore = useUserStore()
+userStore.init()
 
 app.mount('#app')
 

@@ -52,7 +52,7 @@ class FirestoreApiClient {
   /**
    * GET - 取得單一文件
    */
-  async get<T = any>(path: string, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async get<T = any>(path: string, _config?: RequestConfig): Promise<ApiResponse<T>> {
     try {
       const firestore = getFirebaseFirestore()
       const docRef = doc(firestore, this.getPath(path))
@@ -62,8 +62,9 @@ class FirestoreApiClient {
         throw new Error('Document not found')
       }
 
+      // DocumentSnapshot 轉換為 QueryDocumentSnapshot 的兼容類型
       return {
-        data: docToData<T>(docSnap)
+        data: { id: docSnap.id, ...docSnap.data() } as T
       }
     } catch (error: any) {
       return {
@@ -123,7 +124,7 @@ class FirestoreApiClient {
   /**
    * POST - 新增文件
    */
-  async post<T = any>(path: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async post<T = any>(path: string, data?: any, _config?: RequestConfig): Promise<ApiResponse<T>> {
     try {
       const firestore = getFirebaseFirestore()
       const collectionRef = collection(firestore, this.getPath(path))
@@ -147,7 +148,7 @@ class FirestoreApiClient {
   /**
    * PUT - 更新文件（完整替換）
    */
-  async put<T = any>(path: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async put<T = any>(path: string, data?: any, _config?: RequestConfig): Promise<ApiResponse<T>> {
     try {
       const firestore = getFirebaseFirestore()
       const docRef = doc(firestore, this.getPath(path))
@@ -155,7 +156,10 @@ class FirestoreApiClient {
 
       // 取得更新後的文件
       const docSnap = await getDoc(docRef)
-      const result = docToData<T>(docSnap)
+      if (!docSnap.exists()) {
+        throw new Error('Document not found after update')
+      }
+      const result = { id: docSnap.id, ...docSnap.data() } as T
 
       return {
         data: result
@@ -179,7 +183,7 @@ class FirestoreApiClient {
   /**
    * DELETE - 刪除文件
    */
-  async delete<T = any>(path: string, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async delete<T = any>(path: string, _config?: RequestConfig): Promise<ApiResponse<T>> {
     try {
       const firestore = getFirebaseFirestore()
       const docRef = doc(firestore, this.getPath(path))

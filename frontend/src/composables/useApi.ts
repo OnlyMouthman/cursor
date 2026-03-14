@@ -4,7 +4,7 @@
  */
 
 import { ref, type Ref } from 'vue'
-import { api, type ApiResponse } from '@/api/client'
+import type { ApiResponse } from '@/api/types'
 
 export function useApi<T = any>() {
   const data: Ref<T | null> = ref(null)
