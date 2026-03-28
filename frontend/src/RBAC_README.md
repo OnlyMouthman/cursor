@@ -1,6 +1,6 @@
 # RBAC 實作說明
 
-本專案已依 `RBAC_SYSTEM_SPECIFICATION.md` 實作基底 RBAC，並與現有 Firebase/Firestore、Vue 3、Pinia 整合。
+本專案已依 [RBAC_SYSTEM_SPECIFICATION.md](../../docs/RBAC_SYSTEM_SPECIFICATION.md) 實作基底 RBAC，並與現有 Firebase/Firestore、Vue 3、Pinia 整合。
 
 ## Firebase 必須完成的設定（避免 Missing or insufficient permissions）
 

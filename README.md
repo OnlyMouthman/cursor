@@ -49,7 +49,9 @@ docker-compose -f docker-compose.prod.yml up -d --build
 
 ## 專案結構
 
-詳見 [ARCHITECTURE.md](./ARCHITECTURE.md)
+詳見 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+
+其他說明文件請見 [docs/README.md](./docs/README.md)。
 
 ## 開發指南
 

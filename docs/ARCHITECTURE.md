@@ -72,6 +72,7 @@ project-root/
 │   ├── tailwind.config.js      # Tailwind 配置
 │   ├── vitest.config.ts        # Vitest 配置
 │   └── playwright.config.ts    # Playwright 配置
+├── docs/                       # 專案說明與規格（架構、設定、實作紀錄）
 ├── docker-compose.dev.yml      # 根目錄開發環境編排
 ├── docker-compose.prod.yml     # 根目錄生產環境編排
 ├── .dockerignore

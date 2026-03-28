@@ -1,6 +1,6 @@
 /**
  * RBAC 權限系統型別定義
- * 依 RBAC_SYSTEM_SPECIFICATION.md
+ * 依 docs/RBAC_SYSTEM_SPECIFICATION.md
  */
 
 /** 權限 slug 格式：module.action，基底僅 view / edit */

@@ -10,7 +10,7 @@
 - ✅ 規劃了 Header 與 UserMenu 共用策略
 - ✅ 定義了登入/登出/切換前後台的流程
 
-**文檔**：`ROUTING_ARCHITECTURE.md`
+**文檔**：[ROUTING_ARCHITECTURE.md](./ROUTING_ARCHITECTURE.md)
 
 ### Prompt B：元件與目錄結構 ✅
 
@@ -21,7 +21,7 @@
 - ✅ 配置了路由（含 guard）
 - ✅ 創建了 `user` store
 
-**文檔**：`PROJECT_STRUCTURE.md`
+**文檔**：[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
 
 ### Prompt C：Header 行為細節 ✅
 
