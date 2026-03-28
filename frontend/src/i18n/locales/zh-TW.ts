@@ -54,11 +54,22 @@ export default {
     title: '系統入口',
     subtitle: '選擇要進入的模組（目前為架構預留）。'
   },
+  access: {
+    guestViewTitle: '目前為瀏覽模式',
+    guestViewBody: '登入後可使用編輯與更多功能。',
+    viewOnlyTitle: '目前為瀏覽模式',
+    viewOnlyBody: '您的帳號目前沒有此模組的編輯權限。',
+    signInToEditHint: '登入後可使用',
+    lockedActionTitle: '需要登入或權限'
+  },
   module: {
     stubHint: '此為模組骨架頁，尚未實作業務功能。',
     sidebarTitleNotes: 'Notes',
     sidebarTitleGis: 'GIS',
-    sidebarTitleAr: 'AR'
+    sidebarTitleAr: 'AR',
+    newNote: '新增筆記',
+    editMap: '編輯地圖',
+    manageScene: '管理場景'
   },
   users: {
     title: '使用者管理',

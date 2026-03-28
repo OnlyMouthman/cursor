@@ -16,7 +16,8 @@ src/
 ├── components/              # 共用元件
 │   ├── AppHeader.vue       # 共用 Header（前台/後台）
 │   ├── UserMenu.vue        # 共用使用者選單（前台/後台）
-│   └── ManageSidebar.vue   # 後台專用 Sidebar
+│   ├── ManageSidebar.vue   # 後台／模組 Sidebar
+│   └── ModuleAccessBanner.vue  # 模組頁瀏覽模式提示（搭配 usePageAccess）
 │
 ├── layouts/                 # Layout 元件
 │   ├── FrontLayout.vue     # 前台 Layout（含 Header；Hub、About）
@@ -25,14 +26,15 @@ src/
 │
 ├── router/                  # 路由配置
 │   ├── index.ts            # 路由定義 + Auth Guard
-│   └── meta.d.ts           # 擴充 vue-router RouteMeta（module 等）
+│   └── meta.d.ts           # 擴充 vue-router RouteMeta（module、editablePermission 等）
 │
 ├── stores/                  # Pinia 狀態管理
 │   ├── index.ts            # Pinia 實例
 │   └── user.ts             # 使用者狀態（登入狀態）
 │
+├── composables/             # usePageAccess（瀏覽／編輯模式）等
 ├── views/                   # 頁面元件
-│   ├── HubView.vue         # 系統入口（模組卡片；需登入）
+│   ├── HubView.vue         # 系統入口（模組卡片；公開可瀏覽）
 │   ├── HomeView.vue        # 保留檔案（目前未掛路由）
 │   ├── AboutView.vue       # 關於頁
 │   ├── AuthView.vue        # 登入頁
@@ -47,7 +49,7 @@ src/
 ├── i18n/                    # 國際化
 ├── styles/                  # 全域樣式
 ├── types/                   # TypeScript 型別（含 module.ts：Hub 卡片／模組假選單）
-├── utils/                   # 工具函數
+├── utils/                   # 工具函數（含 permissions.ts、access.ts）
 ├── App.vue                  # 根元件
 └── main.ts                  # 應用入口
 ```
@@ -101,9 +103,10 @@ src/
 **router/index.ts**
 - 定義所有路由（含 `/hub`、模組前綴、`/` 與萬用路徑導向 hub）
 - 實作 Auth Guard：
-  - **`matched` 鏈上任一** `requiresAuth` 即驗證
-  - 未登入 → 導向 `/auth` 並帶 `redirect`
+  - **`matched` 鏈上任一** `requiresAuth` 即驗證（**`/hub`、模組前綴不設 requiresAuth**）
+  - 未登入 → 導向 `/auth` 並帶 `redirect`（僅需認證路由）
   - 停用帳號 → 導向 `/about`
+- 模組父路由可設 **`meta.editablePermission`**，與 `usePageAccess` 搭配控制編輯 UI
 
 #### Stores
 

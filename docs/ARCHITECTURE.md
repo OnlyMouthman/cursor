@@ -168,9 +168,9 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ## 平台與模組路由（補充）
 
-- 登入後預設進入 **`/hub`**（模組卡片入口）；**`/notes`、`/gis`、`/ar`** 等為模組殼層路由（`ModuleLayout` + 佔位頁），**`/manage/*`** 仍為後台與 RBAC 管理。
-- 詳細路由與 Guard 行為見 [ROUTING_ARCHITECTURE.md](./ROUTING_ARCHITECTURE.md) 文末「補充」一節。
-- **API 抽象層**（`src/api/`）未因模組掛載而改變；模組僅影響前端 Router／Layout／側欄資料來源切換。
+- **`/hub`、`/notes`、`/gis`、`/ar`** 可**未登入瀏覽**；編輯能力由前端 **`usePageAccess`**、路由 **`meta.editablePermission`** 與 **`hasPermission`** 控制。**`/manage/*`** 仍須登入與 RBAC。
+- 登入成功預設仍導向 **`/hub`**（模組卡片入口）。詳細路由與 Guard 見 [ROUTING_ARCHITECTURE.md](./ROUTING_ARCHITECTURE.md) 文末「補充」一節。
+- **API 抽象層**（`src/api/`）行為不變；**`rbacSeed`** 已擴充 `notes`／`gis`／`ar` 權限與角色綁定（見 [RBAC_SYSTEM_SPECIFICATION.md](./RBAC_SYSTEM_SPECIFICATION.md) §11.1）。
 
 ## 未來擴展性
 

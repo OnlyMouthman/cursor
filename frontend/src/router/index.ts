@@ -1,3 +1,7 @@
+/**
+ * 公開瀏覽：/hub、/notes、/gis、/ar 不設 requiresAuth。
+ * 子路由可選 meta.editablePermission（如 'notes.edit'）配合 usePageAccess 決定 canEdit。
+ */
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -26,13 +30,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/hub',
     component: FrontLayout,
-    meta: { requiresAuth: true, module: 'platform' },
+    meta: { module: 'platform' },
     children: [
       {
         path: '',
         name: 'Hub',
         component: HubView,
-        meta: { requiresAuth: true, module: 'platform' }
+        meta: { module: 'platform' }
       }
     ]
   },
@@ -58,60 +62,60 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/notes',
     component: ModuleLayout,
-    meta: { requiresAuth: true, module: 'notes' },
+    meta: { module: 'notes', editablePermission: 'notes.edit' },
     children: [
       {
         path: '',
         name: 'NotesHome',
         component: NotesHome,
-        meta: { requiresAuth: true, module: 'notes' }
+        meta: { module: 'notes' }
       },
       {
         path: 'explore',
         name: 'NotesExplore',
         component: ModuleStubPage,
         props: { title: 'Notes — explore (stub)' },
-        meta: { requiresAuth: true, module: 'notes' }
+        meta: { module: 'notes' }
       }
     ]
   },
   {
     path: '/gis',
     component: ModuleLayout,
-    meta: { requiresAuth: true, module: 'gis' },
+    meta: { module: 'gis', editablePermission: 'gis.edit' },
     children: [
       {
         path: '',
         name: 'GISHome',
         component: GISHome,
-        meta: { requiresAuth: true, module: 'gis' }
+        meta: { module: 'gis' }
       },
       {
         path: 'explore',
         name: 'GISExplore',
         component: ModuleStubPage,
         props: { title: 'GIS — explore (stub)' },
-        meta: { requiresAuth: true, module: 'gis' }
+        meta: { module: 'gis' }
       }
     ]
   },
   {
     path: '/ar',
     component: ModuleLayout,
-    meta: { requiresAuth: true, module: 'ar' },
+    meta: { module: 'ar', editablePermission: 'ar.edit' },
     children: [
       {
         path: '',
         name: 'ARHome',
         component: ARHome,
-        meta: { requiresAuth: true, module: 'ar' }
+        meta: { module: 'ar' }
       },
       {
         path: 'explore',
         name: 'ARExplore',
         component: ModuleStubPage,
         props: { title: 'AR — explore (stub)' },
-        meta: { requiresAuth: true, module: 'ar' }
+        meta: { module: 'ar' }
       }
     ]
   },

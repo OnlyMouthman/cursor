@@ -46,12 +46,12 @@
 - **權限 Store**：`stores/permission.ts`（`can` / `canAny` / `canAll`、SuperAdmin、快取 `permission:{uid}`）
 - **User Store**：登入後自動呼叫 `permissionStore.loadForUser(uid, roleId, role)`
 - **選單**：`ManageSidebar.vue` 從 Firestore 載入選單，依權限過濾
-- **路由**：`meta.requiresPermission` 使用 `module.action`（如 `user.view`）
+- **路由**：`meta.requiresPermission` 使用 `module.action`（如 `user.view`）；模組前綴另可設 **`meta.editablePermission`**（如 `notes.edit`），由 **`usePageAccess()`** 與 `hasPermission` 決定是否可編輯（不擋公開瀏覽）
 - **Firestore 規則**：依 `roleId` / `role` 解析角色 slug，`admin` 與 `super_admin` 可管理 RBAC 集合
 
 ## 首次部署：執行 RBAC 種子
 
-種子會建立：權限群組、權限（user/role/permission/menu/settings 的 view+edit）、角色（super_admin, admin, editor, viewer）、角色權限綁定、後台選單。
+種子會建立：權限群組（含 **`pg_modules` App Modules**）、權限（user/role/permission/menu/settings 的 view+edit，以及 **notes/gis/ar** 各 view+edit）、角色（super_admin, admin, editor, viewer）、角色權限綁定、後台選單。預設 **admin** 擁有模組六權限；**editor** 擁有 `notes.edit`、`gis.edit`、`ar.edit`；**viewer** 不含模組 edit。
 
 ### 若出現「Missing or insufficient permissions」
 

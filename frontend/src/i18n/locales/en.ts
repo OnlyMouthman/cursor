@@ -54,11 +54,22 @@ export default {
     title: 'App Hub',
     subtitle: 'Choose a module (architecture placeholder).'
   },
+  access: {
+    guestViewTitle: 'Viewing mode',
+    guestViewBody: 'Sign in to unlock editing and more features.',
+    viewOnlyTitle: 'View-only mode',
+    viewOnlyBody: 'Your account does not have edit permission for this module.',
+    signInToEditHint: 'Sign in to use',
+    lockedActionTitle: 'Sign in or permission required'
+  },
   module: {
     stubHint: 'Module shell only — no business logic yet.',
     sidebarTitleNotes: 'Notes',
     sidebarTitleGis: 'GIS',
-    sidebarTitleAr: 'AR'
+    sidebarTitleAr: 'AR',
+    newNote: 'New Note',
+    editMap: 'Edit Map',
+    manageScene: 'Manage Scene'
   },
   users: {
     title: 'User Management',

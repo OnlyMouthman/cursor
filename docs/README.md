@@ -7,7 +7,7 @@
 | 檔案 | 說明 |
 |------|------|
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 專案架構與技術棧 |
-| [ROUTING_ARCHITECTURE.md](./ROUTING_ARCHITECTURE.md) | 路由與前後台規劃（文末含 Hub／模組補充） |
+| [ROUTING_ARCHITECTURE.md](./ROUTING_ARCHITECTURE.md) | 路由與前後台規劃（Hub／模組**公開瀏覽**、`editablePermission`、文末補充） |
 | [DESIGN_DECISIONS.md](./DESIGN_DECISIONS.md) | 設計決策紀錄 |
 | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | 目錄與元件結構 |
 

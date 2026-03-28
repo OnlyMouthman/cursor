@@ -411,6 +411,17 @@ permission:{user_id}
 
 以上四類為基底必備；其餘如 System、Content 等可由各專案在「同一套 RBAC 規格」下擴充模組與權限。
 
+### 11.1 本倉庫（Jerry）擴充（實作對照）
+
+| 項目 | 說明 |
+|------|------|
+| **模組** | 於 `frontend/src/types/rbac.ts` 的 `RBAC_MODULES` 追加 `notes`、`gis`、`ar`，種子自動產生 `notes.view`／`notes.edit` 等共六筆權限 |
+| **權限群組** | Firestore `permission_groups` 新增 **`pg_modules`（App Modules）**，供上述權限歸類 |
+| **角色綁定** | `rbacSeed.ts`：預設 **admin** 含模組 view+edit；**editor** 含三模組 `*.edit`；**viewer** 不含模組 edit（前台模組頁僅瀏覽） |
+| **與路由** | 模組父路由 **`meta.editablePermission`** 對應 `*.edit`；前端以 `usePageAccess` + `hasPermission` 控制編輯 UI，**不**以此擋公開瀏覽 |
+
+**既有資料庫**須再執行種子（或等價同步）後，Firestore 才會出現新權限與綁定；細節見 `frontend/src/RBAC_README.md`。
+
 ---
 
 ## 12. 規格使用方式（給未來專案）

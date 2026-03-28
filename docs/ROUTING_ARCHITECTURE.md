@@ -170,23 +170,24 @@ router.beforeEach((to, from, next) => {
 ### 路由樹（摘要）
 
 - **`/`** → 重新導向 **`/hub`**
-- **`/hub`**：`FrontLayout` + `HubView`，**需登入**；`meta.module: 'platform'`
+- **`/hub`**：`FrontLayout` + `HubView`，**公開**（未登入可瀏覽）；`meta.module: 'platform'`
 - **`/about`**：公開；`FrontLayout` + `AboutView`
-- **`/notes/*`、`/gis/*`、`/ar/*`**：`ModuleLayout`（`AppHeader` `context: 'module'` + `ManageSidebar` 依 `meta.module` 顯示假選單）+ 子路由佔位頁
-- **`/manage/*`**：維持 `ManageLayout` + Firestore 選單；`meta.module: 'manage'`
+- **`/notes/*`、`/gis/*`、`/ar/*`**：**公開**；`ModuleLayout`（`AppHeader` `context: 'module'` + `ManageSidebar` 依 `meta.module` 顯示假選單）+ 子路由佔位頁；父路由設 **`meta.editablePermission`**（`notes.edit`／`gis.edit`／`ar.edit`），供 `usePageAccess` 與 `hasPermission` 決定是否可編輯（子路徑繼承）
+- **`/manage/*`**：維持 `ManageLayout` + Firestore 選單；`meta.module: 'manage'`；**需登入**與 `requiresPermission`
 - **未知路徑** → **`/hub`**
 
 ### Auth Guard 調整
 
-- 若 **`to.matched` 中任一筆** `meta.requiresAuth === true`，則整段視為需驗證（巢狀子路由一併受保護）。
-- 帳號 **`status === disabled`**：導向 **`/about`**（避免 `/` → `/hub` 與需登入衝突）。
+- 若 **`to.matched` 中任一筆** `meta.requiresAuth === true`，則整段視為需驗證（巢狀子路由一併受保護）。**`/hub` 與模組前綴不設 `requiresAuth`，未登入不會被導向 `/auth`。**
+- 帳號 **`status === disabled`**：進入**需認證**路由時導向 **`/about`**（避免 `/` → `/hub` 與需登入衝突）。
 
 ### UserMenu 與預設導向
 
 - 登入成功預設導向 **`/hub`**（含 `AuthView`、Header 內快速登入）。
 - **`context: 'manage'`**：選單為「回到系統入口」→ `/hub`（取代舊文檔中的「回到前台」`router.push('/')` 描述）。
 
-### 權限預留
+### 權限與編輯模式
 
-- 路由可設 **`meta.module`**：`'platform' | 'manage' | 'notes' | 'gis' | 'ar'`（型別見 `frontend/src/router/meta.d.ts`），供日後依模組做 RBAC；目前模組路由**不依** `requiresPermission` 攔截。
+- 路由可設 **`meta.module`**、**`meta.editablePermission`**（型別見 `frontend/src/router/meta.d.ts`）。模組前綴**不以** `requiresPermission` 擋瀏覽；**編輯型 UI** 由 **`usePageAccess()`**（`canEdit`／`mode`）依登入狀態與 **`hasPermission`** 判定。
+- 後台 **`/manage/*`** 仍依 **`requiresPermission`** 與既有 Guard 行為。
 

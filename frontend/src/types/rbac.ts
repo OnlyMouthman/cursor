@@ -56,13 +56,16 @@ export interface MenuTreeNode extends MenuItem {
   children: MenuTreeNode[]
 }
 
-/** 基底模組 slug，用於權限自動產生 */
+/** 基底模組 slug，用於權限自動產生（含前台 Notes/GIS/AR 模組） */
 export const RBAC_MODULES = [
   'user',
   'role',
   'permission',
   'menu',
-  'settings'
+  'settings',
+  'notes',
+  'gis',
+  'ar'
 ] as const
 
 export type RbacModuleSlug = (typeof RBAC_MODULES)[number]

@@ -21,7 +21,9 @@ export const PERMISSION_GROUP_IDS = {
   roleManagement: 'pg_role',
   permissionManagement: 'pg_permission',
   menuManagement: 'pg_menu',
-  system: 'pg_system'
+  system: 'pg_system',
+  /** Notes / GIS / AR 等前台模組權限 */
+  modules: 'pg_modules'
 } as const
 
 /** 角色 ID（固定以利 users.roleId 關聯） */
@@ -38,12 +40,22 @@ const MODULE_TO_GROUP: Record<string, string> = {
   role: PERMISSION_GROUP_IDS.roleManagement,
   permission: PERMISSION_GROUP_IDS.permissionManagement,
   menu: PERMISSION_GROUP_IDS.menuManagement,
-  settings: PERMISSION_GROUP_IDS.system
+  settings: PERMISSION_GROUP_IDS.system,
+  notes: PERMISSION_GROUP_IDS.modules,
+  gis: PERMISSION_GROUP_IDS.modules,
+  ar: PERMISSION_GROUP_IDS.modules
 }
 
 /** 權限 ID 命名：perm_{module}_{action} */
 function permissionId(module: string, action: string): string {
   return `perm_${module}_${action}`
+}
+
+/** 權限顯示名稱前綴（部分模組需固定大寫） */
+const MODULE_LABEL_PREFIX: Record<string, string> = {
+  notes: 'Notes',
+  gis: 'GIS',
+  ar: 'AR'
 }
 
 /**
@@ -55,10 +67,12 @@ export async function seedPermissionGroupsAndPermissions(): Promise<void> {
   await setPermissionGroup('pg_permission', { name: 'Permission Management', order: 30 })
   await setPermissionGroup('pg_menu', { name: 'Menu Management', order: 40 })
   await setPermissionGroup('pg_system', { name: 'System', order: 50 })
+  await setPermissionGroup(PERMISSION_GROUP_IDS.modules, { name: 'App Modules', order: 55 })
 
   for (const module of RBAC_MODULES) {
     const groupId = MODULE_TO_GROUP[module] ?? PERMISSION_GROUP_IDS.system
-    const namePrefix = module.charAt(0).toUpperCase() + module.slice(1)
+    const namePrefix =
+      MODULE_LABEL_PREFIX[module] ?? module.charAt(0).toUpperCase() + module.slice(1)
     await setPermission(permissionId(module, 'view'), {
       permissionGroupId: groupId,
       name: `${namePrefix} View`,
@@ -110,9 +124,18 @@ export async function seedRolePermissions(): Promise<void> {
     'user.view', 'user.edit',
     'role.view', 'role.edit',
     'menu.view', 'menu.edit',
-    'settings.view', 'settings.edit'
+    'settings.view', 'settings.edit',
+    'notes.view', 'notes.edit',
+    'gis.view', 'gis.edit',
+    'ar.view', 'ar.edit'
   ]
-  const editorSlugs = ['user.view', 'settings.view']
+  const editorSlugs = [
+    'user.view',
+    'settings.view',
+    'notes.edit',
+    'gis.edit',
+    'ar.edit'
+  ]
   const viewerSlugs = ['user.view', 'settings.view']
 
   const slugToId = new Map(allPerms.map(p => [p.slug, p.id]))

@@ -25,12 +25,13 @@
 │   │   │   ├── menus.ts     # 選單樹 + 權限 slug 解析
 │   │   │   ├── firebase/    # config、auth、firestore、users、rbac、rbacSeed、storage
 │   │   │   └── adapters/django.ts  # HTTP 客戶端範例，未接線
-│   │   ├── components/      # AppHeader、UserMenu、ManageSidebar、LanguageSwitcher
+│   │   ├── components/      # AppHeader、UserMenu、ManageSidebar、LanguageSwitcher、ModuleAccessBanner
+│   │   ├── composables/   # usePageAccess（瀏覽／編輯模式）、useApi 等
 │   │   ├── layouts/         # FrontLayout、ManageLayout、ModuleLayout（模組殼層）
 │   │   ├── views/           # HubView、modules/*（Notes/GIS/AR 骨架）、manage/*
-│   │   ├── router/          # index.ts（路由 + Guard）、meta.d.ts（RouteMeta 擴充）
+│   │   ├── router/          # index.ts（路由 + Guard）、meta.d.ts（module、editablePermission 等）
 │   │   ├── stores/          # user、permission（RBAC）
-│   │   ├── utils/permissions.ts
+│   │   ├── utils/permissions.ts、utils/access.ts（路由 meta 讀取）
 │   │   ├── types/           # user、rbac、module（Hub 卡片／模組假選單，非後端 API）
 │   │   └── i18n/            # 多語系
 │   └── tests/               # unit / component / e2e
@@ -42,11 +43,12 @@
 ## 3. 已完成功能
 
 - **認證**：Google 登入／登出；Auth 狀態監聽；登入後同步／建立 Firestore `users` 文件、更新最後登入、同步 Auth 顯示名稱與頭像。
-- **路由**：`/` 重新導向 **`/hub`**（登入後系統入口，卡片選模組）；`/about` 仍為公開頁；**`/notes/*`、`/gis/*`、`/ar/*`** 為模組骨架（`ModuleLayout` + 佔位頁）；`/manage/*` 為後台；`/auth` 獨立；未知路徑導向 **`/hub`**。
-- **平台／模組架構（UI 骨架）**：`HubView` 模組卡片；`ModuleLayout` 與 **`ManageSidebar` 的 `module` prop**（`manage` → Firestore 選單；`notes`／`gis`／`ar` → 假選單）；路由 **`meta.module`** 預留未來 RBAC（`platform` | `manage` | `notes` | `gis` | `ar`）。
+- **路由**：`/` 重新導向 **`/hub`**；**`/hub`、`/notes/*`、`/gis/*`、`/ar/*` 不需登入即可進入**（公開瀏覽）；`/about`、`/auth` 維持公開或獨立頁；**`/manage/*` 仍須登入**並沿用 `requiresPermission`；未知路徑導向 **`/hub`**。
+- **平台／模組架構（UI 骨架）**：`HubView` 模組卡片；`ModuleLayout` 與 **`ManageSidebar` 的 `module` prop**（`manage` → Firestore 選單；`notes`／`gis`／`ar` → 假選單）；路由 **`meta.module`**；**`meta.editablePermission`**（如 `notes.edit`）搭配 `usePageAccess`／`hasPermission` 決定模組內是否可編輯（子路由繼承父層 meta）。
+- **頁面存取模式**：`usePageAccess()` 提供 `isLoggedIn`、`canEdit`、`mode`（`view` | `edit`）；`ModuleAccessBanner` 於不可編輯時顯示簡短提示；模組首頁含示意按鈕（disabled／`console.log` 骨架，無實際業務）。
 - **後台進入控制**：`matched` 鏈上任一 **`requiresAuth`** 即驗證（巢狀子路由一併保護）；未登入導向 `/auth?redirect=`；`waitForAuthReady()` 避免 production 直連時誤判權限。
 - **帳號狀態**：`status === disabled` 時無法進入需認證區域（導向 **`/about`**，避免與 `/`→`/hub` 循環）。
-- **RBAC（資料驅動）**：Firestore 集合 `permission_groups`、`permissions`、`roles`、`role_permissions`、`menus`；前端 `permission` store（含 localStorage 快取、SuperAdmin `*`）、`hasPermission` 等 helper。
+- **RBAC（資料驅動）**：Firestore 集合 `permission_groups`、`permissions`、`roles`、`role_permissions`、`menus`；前端 `permission` store（含 localStorage 快取、SuperAdmin `*`）、`hasPermission` 等 helper。**種子**另含 **`pg_modules`（App Modules）** 與 **`notes`／`gis`／`ar`** 的 `*.view`／`*.edit`；預設 **admin** 擁有上述模組權限、**editor** 擁有三個 `*.edit`、**viewer** 無模組 edit（僅能瀏覽模組公開頁）。**既有環境須重新執行 `seedRbac()`（或至少權限＋角色綁定步驟）** 才會寫入新權限。
 - **路由級權限**：例如 `user.view`、`role.view`、`settings.view` 對應 `/manage/users`、`/manage/roles`、`/manage/settings`。
 - **後台側欄**：自 Firestore `menus` 組樹，依權限 slug 過濾可見項目。
 - **使用者管理頁**：列表、搜尋、依角色／狀態篩選；具權限者可變更角色（`roleId`／legacy `role`）、啟用／停用（實作細節見 `UsersView.vue` + `usersAPI`）。
@@ -60,7 +62,7 @@
 |------|------|
 | **系統設定頁** | `SettingsView.vue` 僅佔位文案，註解「待實作」。 |
 | **後台儀表板** | `DashboardView.vue` 統計為寫死 `0`，未接真實資料或分析。 |
-| **首頁／關於** | `HomeView` 已不掛路由（保留檔案）；`AboutView` 仍為極簡示範；**`/hub`** 為登入後入口但僅模組卡片骨架。 |
+| **首頁／關於** | `HomeView` 已不掛路由（保留檔案）；`AboutView` 仍為極簡示範；**`/hub`** 為系統入口（**可未登入瀏覽**）但僅模組卡片骨架。 |
 | **檔案上傳** | `api/firebase/storage.ts` 已封裝，目前無業務頁面使用。 |
 | **後端切換** | `adapters/django.ts` 為範例；`client.ts` 仍綁定 Firestore。 |
 | **Firebase Cloud Functions** | 專案內無 `functions/` 目錄；需後端流程時須另建或外部服務。 |
@@ -70,7 +72,7 @@
 
 設計原則：**元件與 store 優先呼叫語意化 API**（`authAPI`、`usersAPI`），**通用 CRUD** 可走 `api`（`client.ts`）對應 Firestore 路徑。
 
-**本次架構升級**：Firebase／`authAPI`／`usersAPI`／`menus.ts`／`rbac` 等**後端存取行為未改**；僅前端路由與側欄依 **`module` 上下文**切換資料來源（Firestore 選單 vs. `types/module.ts` 假選單）。
+**近期調整摘要**：`authAPI`／`usersAPI`／`menus.ts`／`rbac.ts` **CRUD 行為未改**；**`rbacSeed.ts`** 擴充模組權限與角色綁定（見 §3）。前端新增 **`usePageAccess`、`utils/access`、`ModuleAccessBanner`**；路由 **`meta.editablePermission`**；`/hub` 與模組前綴改為**公開進入**，側欄仍依 **`module`** 切換 Firestore 選單 vs. 假選單。
 
 ### 5.1 `authAPI`（`src/api/auth.ts`）
 
@@ -90,23 +92,29 @@
 
 - 讀寫／列表：permission groups、permissions、roles、role_permissions、menus（寫入多為管理介面與 seed）
 - `getMenusWithPermissionSlugs()`、`buildMenuTree()` 供 **`ManageSidebar` 在 `module === 'manage'`** 時使用（模組模式不呼叫）
+- **`rbacSeed.ts`**：`RBAC_MODULES` 含 `notes`、`gis`、`ar`；`seedPermissionGroupsAndPermissions()` 建立 **`pg_modules`** 與六筆模組權限；`seedRolePermissions()` 為 admin／editor 綁定對應 slug（見 §3）
 
 ### 5.5 其他
 
 - **`storageService`**：上傳／URL／刪除，**目前無呼叫端**。
-- **`rbacSeed`**：種子資料相關（部署與權限見 `docs` 與 RBAC README）。
+- **`rbacSeed`**：種子資料相關（部署與權限見 `docs` 與 `frontend/src/RBAC_README.md`）；**擴充模組權限後若資料庫已存在舊種子，須再執行同步**。
+
+### 5.6 頁面存取 helper（非 HTTP API）
+
+- **`utils/access.ts`**：`getDeepestRouteMetaValue(matched, key)`，供 `usePageAccess` 解析 **`editablePermission`**
+- **`composables/usePageAccess.ts`**：組合 `user` store、`hasPermission`、路由 meta，產出 `canEdit`／`mode` 等（與 `utils/permissions.ts` 搭配，非新增遠端端點）
 
 ## 6. 頁面與路由
 
 | 路徑 | 名稱（約） | 說明 |
 |------|------------|------|
 | `/` | — | 重新導向 **`/hub`** |
-| `/hub` | Hub | 系統入口卡片（Notes／GIS／AR）；**需登入**；`meta.module: platform` |
+| `/hub` | Hub | 系統入口卡片（Notes／GIS／AR）；**公開**；`meta.module: platform` |
 | `/about` | About | 關於頁，示範文案（公開） |
 | `/auth` | Auth | Google 登入；可帶 `redirect`；預設登入成功導向 **`/hub`** |
-| `/notes`、`/notes/explore` | Notes* | 模組骨架；`ModuleLayout`；`meta.module: notes` |
-| `/gis`、`/gis/explore` | GIS* | 同上；`meta.module: gis` |
-| `/ar`、`/ar/explore` | AR* | 同上；`meta.module: ar` |
+| `/notes`、`/notes/explore` | Notes* | **公開**；`ModuleLayout`；`meta.module: notes`；父路由 **`editablePermission: notes.edit`**（子路徑繼承） |
+| `/gis`、`/gis/explore` | GIS* | **公開**；`meta.module: gis`；**`editablePermission: gis.edit`** |
+| `/ar`、`/ar/explore` | AR* | **公開**；`meta.module: ar`；**`editablePermission: ar.edit`** |
 | `/manage` | ManageDashboard | 後台儀表板（佔位數據）；`meta.module: manage` |
 | `/manage/users` | ManageUsers | 使用者管理；需 `user.view` |
 | `/manage/roles` | ManageRoles | 角色與權限關聯管理；需 `role.view` |
@@ -128,7 +136,10 @@
 | **LanguageSwitcher** | `components/LanguageSwitcher.vue` | i18n 切換 |
 | **useUserStore** | `stores/user.ts` | Auth 使用者、Firestore profile、`init`、`waitForAuthReady` |
 | **usePermissionStore** | `stores/permission.ts` | 權限 slug 載入／快取、`can` / `canAny` / `canAll` |
-| **hasPermission** 等 | `utils/permissions.ts` | 與 router meta `requiresPermission` 搭配 |
+| **hasPermission** 等 | `utils/permissions.ts` | 與 router **`requiresPermission`**（後台）及 **`usePageAccess` + `editablePermission`**（模組編輯）搭配 |
+| **usePageAccess** | `composables/usePageAccess.ts` | `isLoggedIn`、`canEdit`、`mode`；讀取路由 **`editablePermission`** |
+| **ModuleAccessBanner** | `components/ModuleAccessBanner.vue` | 不可編輯時顯示瀏覽模式提示（訪客／無權） |
+| **getDeepestRouteMetaValue** | `utils/access.ts` | 由 `matched` 最深層向上解析 meta 欄位 |
 
 ## 8. Firestore 資料模型（與權限相關）
 
