@@ -1,20 +1,20 @@
 <template>
   <aside
     :class="[
-      'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
+      'flex flex-col border-r border-line bg-sidebar transition-all duration-300',
       isCollapsed ? 'w-16' : 'w-64'
     ]"
     style="height: 100%;"
   >
-    <div class="h-14 flex items-center justify-between px-4 border-b border-gray-200 flex-shrink-0">
-      <span v-if="!isCollapsed" class="font-semibold text-gray-800">{{ $t(sidebarTitleKey) }}</span>
+    <div class="flex h-14 flex-shrink-0 items-center justify-between border-b border-line px-4">
+      <span v-if="!isCollapsed" class="font-semibold text-ink-strong">{{ $t(sidebarTitleKey) }}</span>
       <button
         @click="toggleCollapse"
-        class="p-2 rounded hover:bg-gray-100 transition"
+        class="rounded p-2 transition hover:bg-sidebar-row-hover"
         :title="isCollapsed ? $t('common.expand') : $t('common.collapse')"
       >
         <svg
-          class="w-5 h-5 text-gray-600"
+          class="h-5 w-5 text-ink-main"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -44,10 +44,10 @@
           <li v-for="item in stubMenuItems" :key="item.id">
             <router-link
               :to="item.route"
-              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition group"
+              class="group flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-sidebar-row-hover"
               :class="{
-                'bg-blue-50 text-blue-600': isStubActive(item.route),
-                'text-gray-700': !isStubActive(item.route)
+                'bg-sidebar-active text-sidebar-active-fg': isStubActive(item.route),
+                'text-sidebar-fg': !isStubActive(item.route)
               }"
             >
               <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,10 +64,10 @@
             <li>
               <router-link
                 :to="item.route"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition group"
+                class="group flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-sidebar-row-hover"
                 :class="{
-                  'bg-blue-50 text-blue-600': route.path === item.route,
-                  'text-gray-700': route.path !== item.route
+                  'bg-sidebar-active text-sidebar-active-fg': route.path === item.route,
+                  'text-sidebar-fg': route.path !== item.route
                 }"
               >
                 <svg
@@ -84,10 +84,10 @@
                 <li v-for="child in item.children" :key="child.id">
                   <router-link
                     :to="child.route"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition text-sm"
+                    class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-sidebar-row-hover"
                     :class="{
-                      'bg-blue-50 text-blue-600': route.path === child.route,
-                      'text-gray-700': route.path !== child.route
+                      'bg-sidebar-active text-sidebar-active-fg': route.path === child.route,
+                      'text-sidebar-fg': route.path !== child.route
                     }"
                   >
                     <span class="font-medium">{{ resolveLabel(child.name) }}</span>

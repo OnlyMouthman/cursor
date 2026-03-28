@@ -2,11 +2,11 @@
   <div class="relative">
     <button
       @click="toggleDropdown"
-      class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition"
+      class="header-icon-btn flex items-center gap-2 px-3 py-2"
       :title="$t('common.language')"
     >
       <svg
-        class="w-5 h-5 text-gray-600"
+        class="h-5 w-5 text-header-fg-muted"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -18,9 +18,9 @@
           d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
         />
       </svg>
-      <span class="text-sm font-medium text-gray-700">{{ currentLanguageLabel }}</span>
+      <span class="text-sm font-medium text-header-fg">{{ currentLanguageLabel }}</span>
       <svg
-        class="w-4 h-4 text-gray-500"
+        class="h-4 w-4 text-header-fg-muted"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -37,16 +37,16 @@
     <!-- Dropdown 選單 -->
     <div
       v-if="showDropdown"
-      class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+      class="absolute right-0 z-50 mt-2 w-40 rounded-lg border border-line bg-surface py-1 shadow-lg"
     >
       <button
         v-for="lang in languages"
         :key="lang.code"
         @click="changeLanguage(lang.code)"
-        class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition flex items-center gap-2"
+        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition hover:bg-soft/20"
         :class="{
-          'bg-blue-50 text-blue-600': currentLocale === lang.code,
-          'text-gray-700': currentLocale !== lang.code
+          'bg-primary-subtle text-primary': currentLocale === lang.code,
+          'text-ink-main': currentLocale !== lang.code
         }"
       >
         <span>{{ lang.flag }}</span>

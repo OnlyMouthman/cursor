@@ -5,7 +5,7 @@
       v-if="!userStore.isAuthenticated"
       @click="handleLogin"
       :disabled="userStore.loading"
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+      class="btn-primary gap-2"
     >
       <svg
         v-if="userStore.loading"
@@ -58,7 +58,7 @@
     <div v-else class="relative">
       <button
         @click="toggleDropdown"
-        class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition"
+        class="flex items-center gap-2 rounded-full p-1 transition hover:bg-header-control-hover"
       >
         <img
           v-if="userStore.photoURL"
@@ -68,7 +68,7 @@
         />
         <div
           v-else
-          class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-medium"
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-header-fg/20 font-medium text-header-fg"
         >
           {{ userStore.displayName.charAt(0).toUpperCase() || 'U' }}
         </div>
@@ -77,11 +77,11 @@
       <!-- Dropdown 選單 -->
       <div
         v-if="showDropdown"
-        class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+        class="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-line bg-surface py-1 shadow-lg"
       >
-        <div class="px-4 py-2 border-b border-gray-100">
-          <p class="text-sm font-medium text-gray-900">{{ userStore.displayName || $t('auth.user') }}</p>
-          <p class="text-xs text-gray-500 truncate">{{ userStore.email }}</p>
+        <div class="border-b border-divider px-4 py-2">
+          <p class="text-sm font-medium text-ink-strong">{{ userStore.displayName || $t('auth.user') }}</p>
+          <p class="truncate text-xs text-ink-muted">{{ userStore.email }}</p>
           <div class="mt-1 flex items-center gap-2">
             <span
               :class="[
@@ -89,8 +89,8 @@
                 userStore.role === 'admin'
                   ? 'bg-purple-100 text-purple-700'
                   : userStore.role === 'editor'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-700'
+                  ? 'bg-primary-subtle text-primary'
+                  : 'bg-soft/30 text-ink-main'
               ]"
             >
               {{ $t(`users.roles.${userStore.role}`) }}
@@ -112,9 +112,9 @@
         <button
           v-if="context === 'front'"
           @click="goToManage"
-          class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition flex items-center gap-2"
+          class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-ink-main transition hover:bg-soft/25"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -134,9 +134,9 @@
         <button
           v-if="context === 'module'"
           @click="goToHub"
-          class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition flex items-center gap-2"
+          class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-ink-main transition hover:bg-soft/25"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -150,9 +150,9 @@
         <button
           v-if="context === 'module'"
           @click="goToManage"
-          class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition flex items-center gap-2"
+          class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-ink-main transition hover:bg-soft/25"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -172,9 +172,9 @@
         <button
           v-if="context === 'manage'"
           @click="goToHub"
-          class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition flex items-center gap-2"
+          class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-ink-main transition hover:bg-soft/25"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -185,7 +185,7 @@
           {{ $t('menu.backToHub') }}
         </button>
 
-        <div class="border-t border-gray-100 my-1"></div>
+        <div class="my-1 border-t border-divider"></div>
 
         <button
           @click="handleLogout"

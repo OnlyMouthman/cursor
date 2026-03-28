@@ -32,6 +32,14 @@
 - **體積小**: 生產環境只包含使用的樣式
 - **易於維護**: 樣式與 HTML 在一起，易於理解
 
+### UI 主題（CSS 變數 + Tailwind 語意色）
+**決策**: 品牌色與介面層級以 `styles/theme.css` 的 `--color-*` 為單一來源；`tailwind.config.js` 以語意名稱（如 `bg-page`、`text-ink-strong`）對應 `var(--color-…)`；重複 UI 模式以 `main.css` 的 `@layer components`（如 `btn-primary`、`ui-card`）收斂。
+
+**原因**:
+- **可替換主視覺**: 換色時改少數變數即可，避免在大量 `.vue` 內搜尋 hex。
+- **語意優先**: 元件表達「層級／用途」而非具體色碼，利於長期維護與未來多主題（例如 `[data-theme]` 覆寫變數）。
+- **細節**見 [THEME_TOKENS.md](./THEME_TOKENS.md)。
+
 ## 2. 後端技術棧選擇
 
 ### Firebase

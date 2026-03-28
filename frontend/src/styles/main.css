@@ -1,17 +1,54 @@
+@import './theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 自訂樣式 */
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@layer base {
+  :root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--color-bg-page);
+    color: var(--color-text-main);
+  }
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
+@layer components {
+  /** 主要行為按鈕（登入、送出等） */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    background-color: var(--color-primary-active);
+  }
+
+  /** 一般卡片區塊 */
+  .ui-card {
+    @apply rounded-xl border shadow-sm transition;
+    background-color: var(--color-card-bg);
+    border-color: var(--color-card-border);
+  }
+
+  /** 頂欄內圖示按鈕（深底） */
+  .header-icon-btn {
+    @apply rounded-lg transition;
+    color: var(--color-header-text);
+  }
+
+  .header-icon-btn:hover {
+    background-color: var(--color-header-control-hover);
+  }
 }
-
-

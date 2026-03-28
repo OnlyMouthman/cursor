@@ -1,9 +1,9 @@
 <template>
-  <header class="fixed top-0 left-0 right-0 h-14 bg-white shadow-sm z-50">
-    <div class="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
+  <header class="fixed top-0 left-0 right-0 z-50 h-14 border-b border-white/10 bg-header shadow-sm">
+    <div class="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
       <!-- Logo / 標題 -->
       <div class="flex items-center">
-        <router-link to="/" class="text-xl font-bold text-gray-800">
+        <router-link to="/" class="text-xl font-bold text-header-fg">
           {{ $t('common.welcome') }}
         </router-link>
       </div>

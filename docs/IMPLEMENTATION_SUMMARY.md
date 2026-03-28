@@ -68,6 +68,12 @@
 - `frontend/src/views/AuthView.vue`
 - `frontend/src/views/manage/DashboardView.vue`
 
+### 樣式與主題（可集中換視覺）
+- `frontend/src/styles/theme.css`（`:root` CSS 變數 token）
+- `frontend/src/styles/main.css`（Tailwind、`btn-primary`／`ui-card` 等共用類別）
+- `frontend/tailwind.config.js`（語意色對應 `var(--color-…)`）
+- **文檔**：[THEME_TOKENS.md](./THEME_TOKENS.md)
+
 ## 技術特點
 
 ### 1. 共用元件策略
@@ -89,6 +95,9 @@
 - 前台：簡單的 Header + 內容
 - 後台：Header + Sidebar + 內容（flex 佈局）
 - Sidebar 可縮合，不影響主內容高度
+
+### 5. UI 主題 Token
+- 品牌色與介面層級集中在 `theme.css`，元件優先使用語意 class／Tailwind 語意色，換主視覺時少改動分散檔案（見 [THEME_TOKENS.md](./THEME_TOKENS.md)）。
 
 ## 使用方式
 

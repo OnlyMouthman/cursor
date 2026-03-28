@@ -33,12 +33,15 @@
 │   │   ├── stores/          # user、permission（RBAC）
 │   │   ├── utils/permissions.ts、utils/access.ts（路由 meta 讀取）
 │   │   ├── types/           # user、rbac、module（Hub 卡片／模組假選單，非後端 API）
+│   │   ├── styles/          # theme.css（CSS 變數 token）、main.css（Tailwind + 共用元件類別）
 │   │   └── i18n/            # 多語系
 │   └── tests/               # unit / component / e2e
 ├── scripts/                 # 例如 set-admin-claim.js（Admin Custom Claim）
 ├── firestore.rules          # Firestore 安全規則
 └── project_context.md       # 本檔
 ```
+
+**架構調整（前端樣式）**：視覺色碼改為**單一來源**（`styles/theme.css` 的 CSS 變數）＋ **Tailwind `theme.extend.colors`** 語意對應；重複的按鈕／卡片樣式收斂至 `main.css` 的 `@layer components`。未新增套件；**未改路由、Pinia、API 層目錄職責**。
 
 ## 3. 已完成功能
 
@@ -54,6 +57,7 @@
 - **使用者管理頁**：列表、搜尋、依角色／狀態篩選；具權限者可變更角色（`roleId`／legacy `role`）、啟用／停用（實作細節見 `UsersView.vue` + `usersAPI`）。
 - **角色管理頁**：角色 CRUD（受 `role.edit` 等權限控制）、關聯權限數量顯示；保護 `super_admin` 不可刪除。
 - **國際化**：語言切換元件 + 文案檔（含 `hub.*`、`module.*`、`menu.appHub`／`backToHub`）。
+- **UI 主題（可替換視覺）**：全站配色集中於 `frontend/src/styles/theme.css` 的 CSS 變數（語意 token，如 `--color-bg-page`、`--color-primary` 等）；`tailwind.config.js` 以語意色名對應同一組變數；共用類別 `btn-primary`、`ui-card`、`header-icon-btn` 定義於 `styles/main.css`。換主視覺時優先改 token，避免在元件內散落 hex。細節見 **`docs/THEME_TOKENS.md`**。
 - **Firestore 規則**：使用者文件讀寫、RBAC 集合讀寫、Admin 需符合規則與 Custom Claim（見 `firestore.rules` 與 `docs/`／`frontend/src/RBAC_README.md`）。
 
 ## 4. 未完成功能／明顯缺口
@@ -71,6 +75,8 @@
 ## 5. API 層說明
 
 設計原則：**元件與 store 優先呼叫語意化 API**（`authAPI`、`usersAPI`），**通用 CRUD** 可走 `api`（`client.ts`）對應 Firestore 路徑。
+
+**API 變更狀態（對照上一版脈絡）**：導入 UI 主題 token 後，**`api/`、`authAPI`、`usersAPI`、RBAC／menus 相關模組之公開介面與行為均未變**；僅前端樣式與 Tailwind 語意色對應調整。
 
 **近期調整摘要**：`authAPI`／`usersAPI`／`menus.ts`／`rbac.ts` **CRUD 行為未改**；**`rbacSeed.ts`** 擴充模組權限與角色綁定（見 §3）。前端新增 **`usePageAccess`、`utils/access`、`ModuleAccessBanner`**；路由 **`meta.editablePermission`**；`/hub` 與模組前綴改為**公開進入**，側欄仍依 **`module`** 切換 Firestore 選單 vs. 假選單。
 
@@ -105,6 +111,8 @@
 - **`composables/usePageAccess.ts`**：組合 `user` store、`hasPermission`、路由 meta，產出 `canEdit`／`mode` 等（與 `utils/permissions.ts` 搭配，非新增遠端端點）
 
 ## 6. 頁面與路由
+
+**新增路由／頁面**：無（與先前一致）。各既有頁面之 **Layout、Header、Sidebar、卡片與主按鈕** 已改採主題 token／語意 class，路由表與功能流程不變。
 
 | 路徑 | 名稱（約） | 說明 |
 |------|------------|------|
@@ -156,6 +164,7 @@
 
 - `README.md`：啟動與環境變數
 - `docs/README.md`：文件索引
+- `docs/THEME_TOKENS.md`：全站 CSS 變數與 Tailwind 語意色對照、擴充多主題方式
 - `docs/RBAC_SYSTEM_SPECIFICATION.md`、`docs/ARCHITECTURE.md`、`docs/ROUTING_ARCHITECTURE.md`
 
 ---

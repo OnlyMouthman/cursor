@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-      <h1 class="text-2xl font-bold text-center mb-6">{{ $t('auth.login') }}</h1>
-      
+  <div class="flex min-h-screen items-center justify-center bg-page">
+    <div class="ui-card w-full max-w-md p-8 shadow-lg">
+      <h1 class="mb-6 text-center text-2xl font-bold text-ink-strong">{{ $t('auth.login') }}</h1>
+
       <button
         @click="handleGoogleLogin"
         :disabled="userStore.loading"
-        class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-3"
+        class="btn-primary w-full gap-3 py-3"
       >
         <svg
           v-if="userStore.loading"

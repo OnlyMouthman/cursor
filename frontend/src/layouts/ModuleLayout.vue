@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen bg-gray-50 flex flex-col overflow-hidden">
+  <div class="flex h-screen flex-col overflow-hidden bg-page">
     <AppHeader context="module" />
     <div class="flex overflow-hidden" style="height: calc(100vh - 56px); margin-top: 56px;">
       <ManageSidebar :module="moduleKey" />

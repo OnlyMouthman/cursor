@@ -10,6 +10,7 @@
 | [ROUTING_ARCHITECTURE.md](./ROUTING_ARCHITECTURE.md) | 路由與前後台規劃（Hub／模組**公開瀏覽**、`editablePermission`、文末補充） |
 | [DESIGN_DECISIONS.md](./DESIGN_DECISIONS.md) | 設計決策紀錄 |
 | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | 目錄與元件結構 |
+| [THEME_TOKENS.md](./THEME_TOKENS.md) | 全站 UI 主題 CSS 變數、Tailwind 語意色、共用樣式類別 |
 
 ## 設定與部署
 

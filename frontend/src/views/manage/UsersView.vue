@@ -2,34 +2,34 @@
   <div class="users-management">
     <!-- 頁面標題 -->
     <div class="mb-6">
-      <h1 class="text-3xl font-bold mb-2">{{ $t('users.title') }}</h1>
-      <p class="text-gray-600">{{ $t('users.description') }}</p>
+      <h1 class="mb-2 text-3xl font-bold text-ink-strong">{{ $t('users.title') }}</h1>
+      <p class="text-ink-main">{{ $t('users.description') }}</p>
     </div>
 
     <!-- 搜尋和篩選 -->
-    <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div class="ui-card mb-6 p-4 shadow">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- 搜尋 -->
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">
+          <label class="mb-1 block text-sm font-medium text-ink-main">
             {{ $t('users.search') }}
           </label>
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="$t('users.searchPlaceholder')"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full rounded-lg border border-line px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-focus"
           />
         </div>
 
         <!-- 角色篩選 -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
+          <label class="mb-1 block text-sm font-medium text-ink-main">
             {{ $t('users.role') }}
           </label>
           <select
             v-model="filterRoleId"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full rounded-lg border border-line px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-focus"
           >
             <option value="">{{ $t('users.allRoles') }}</option>
             <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
@@ -38,12 +38,12 @@
 
         <!-- 狀態篩選 -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
+          <label class="mb-1 block text-sm font-medium text-ink-main">
             {{ $t('users.status') }}
           </label>
           <select
             v-model="filterStatus"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full rounded-lg border border-line px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-focus"
           >
             <option value="">{{ $t('users.allStatuses') }}</option>
             <option value="active">{{ $t('users.statuses.active') }}</option>
@@ -54,46 +54,46 @@
     </div>
 
     <!-- 使用者列表 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="ui-card overflow-hidden shadow">
       <div v-if="loading" class="p-8 text-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p class="mt-2 text-gray-600">{{ $t('common.loading') }}</p>
+        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+        <p class="mt-2 text-ink-main">{{ $t('common.loading') }}</p>
       </div>
 
       <div v-else-if="error" class="p-4 bg-red-50 border border-red-200 rounded text-red-600">
         {{ error }}
       </div>
 
-      <div v-else-if="filteredUsers.length === 0" class="p-8 text-center text-gray-500">
+      <div v-else-if="filteredUsers.length === 0" class="p-8 text-center text-ink-muted">
         {{ $t('users.noUsers') }}
       </div>
 
       <!-- 表格 -->
-      <table v-else class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+      <table v-else class="min-w-full divide-y divide-line">
+        <thead class="bg-soft/15">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">
               {{ $t('users.user') }}
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">
               {{ $t('users.email') }}
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">
               {{ $t('users.role') }}
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">
               {{ $t('users.status') }}
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">
               {{ $t('users.lastLogin') }}
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">
               {{ $t('users.actions') }}
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="user in filteredUsers" :key="user.uid" class="hover:bg-gray-50">
+        <tbody class="divide-y divide-line bg-surface">
+          <tr v-for="user in filteredUsers" :key="user.uid" class="hover:bg-soft/15">
             <!-- 使用者資訊 -->
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
@@ -105,13 +105,13 @@
                 />
                 <div
                   v-else
-                  class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-medium mr-3"
+                  class="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-soft/40 font-medium text-ink-main"
                 >
                   {{ user.displayName.charAt(0).toUpperCase() || 'U' }}
                 </div>
                 <div>
-                  <div class="text-sm font-medium text-gray-900">{{ user.displayName || '-' }}</div>
-                  <div class="text-xs text-gray-500">
+                  <div class="text-sm font-medium text-ink-strong">{{ user.displayName || '-' }}</div>
+                  <div class="text-xs text-ink-muted">
                     {{ $t('users.createdAt') }}: {{ formatDate(user.createdAt) }}
                   </div>
                 </div>
@@ -120,7 +120,7 @@
 
             <!-- Email -->
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ user.email }}</div>
+              <div class="text-sm text-ink-strong">{{ user.email }}</div>
             </td>
 
             <!-- 角色 -->
@@ -130,11 +130,11 @@
                 :value="effectiveRoleId(user)"
                 @change="(e) => handleRoleChange(user, (e.target as HTMLSelectElement).value)"
                 :disabled="updatingUsers.has(user.uid)"
-                class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500"
+                class="rounded border border-line px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
               >
                 <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
               </select>
-              <span v-else class="text-sm text-gray-900">
+              <span v-else class="text-sm text-ink-strong">
                 {{ roleName(user) }}
               </span>
             </td>
@@ -154,7 +154,7 @@
             </td>
 
             <!-- 最後登入 -->
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-ink-muted">
               {{ user.lastLoginAt ? formatDate(user.lastLoginAt) : $t('users.never') }}
             </td>
 
@@ -179,7 +179,7 @@
                     : $t('users.enable') 
                 }}
               </button>
-              <span v-else class="text-gray-400">{{ $t('users.noPermission') }}</span>
+              <span v-else class="text-ink-muted">{{ $t('users.noPermission') }}</span>
             </td>
           </tr>
         </tbody>

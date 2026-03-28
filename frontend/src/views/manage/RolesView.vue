@@ -1,53 +1,49 @@
 <template>
   <div class="roles-management">
-    <div class="mb-6 flex justify-between items-start">
+    <div class="mb-6 flex items-start justify-between">
       <div>
-        <h1 class="text-3xl font-bold mb-2">{{ $t('menu.roleManagement') }}</h1>
-        <p class="text-gray-600">{{ $t('roles.description') }}</p>
+        <h1 class="mb-2 text-3xl font-bold text-ink-strong">{{ $t('menu.roleManagement') }}</h1>
+        <p class="text-ink-main">{{ $t('roles.description') }}</p>
       </div>
-      <button
-        v-if="canEdit"
-        @click="openAddModal()"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
+      <button v-if="canEdit" @click="openAddModal()" class="btn-primary">
         {{ $t('roles.addRole') }}
       </button>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="ui-card overflow-hidden shadow">
       <div v-if="loading" class="p-8 text-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p class="mt-2 text-gray-600">{{ $t('common.loading') }}</p>
+        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+        <p class="mt-2 text-ink-main">{{ $t('common.loading') }}</p>
       </div>
 
       <div v-else-if="error" class="p-4 bg-red-50 border border-red-200 rounded text-red-600 m-4">
         {{ error }}
       </div>
 
-      <div v-else-if="roles.length === 0" class="p-8 text-center text-gray-500">
+      <div v-else-if="roles.length === 0" class="p-8 text-center text-ink-muted">
         {{ $t('roles.noRoles') }}
       </div>
 
-      <table v-else class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+      <table v-else class="min-w-full divide-y divide-line">
+        <thead class="bg-soft/15">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('roles.name') }}</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('roles.slug') }}</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('roles.descriptionColumn') }}</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('roles.permissionCount') }}</th>
-            <th v-if="canEdit" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('roles.actions') }}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">{{ $t('roles.name') }}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">{{ $t('roles.slug') }}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">{{ $t('roles.descriptionColumn') }}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">{{ $t('roles.permissionCount') }}</th>
+            <th v-if="canEdit" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-muted">{{ $t('roles.actions') }}</th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="role in roles" :key="role.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ role.name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-mono text-sm">{{ role.slug }}</td>
-            <td class="px-6 py-4 text-gray-600 max-w-xs">{{ role.description || '—' }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ rolePermissionCounts[role.id] ?? 0 }}</td>
-            <td v-if="canEdit" class="px-6 py-4 whitespace-nowrap text-sm">
+        <tbody class="divide-y divide-line bg-surface">
+          <tr v-for="role in roles" :key="role.id" class="hover:bg-soft/15">
+            <td class="whitespace-nowrap px-6 py-4 font-medium text-ink-strong">{{ role.name }}</td>
+            <td class="whitespace-nowrap px-6 py-4 font-mono text-sm text-ink-main">{{ role.slug }}</td>
+            <td class="max-w-xs px-6 py-4 text-ink-main">{{ role.description || '—' }}</td>
+            <td class="whitespace-nowrap px-6 py-4 text-ink-main">{{ rolePermissionCounts[role.id] ?? 0 }}</td>
+            <td v-if="canEdit" class="whitespace-nowrap px-6 py-4 text-sm">
               <button
                 @click="openEditModal(role)"
-                class="text-blue-600 hover:underline mr-3"
+                class="mr-3 text-primary hover:underline"
               >
                 {{ $t('roles.editRole') }}
               </button>
@@ -58,7 +54,7 @@
               >
                 {{ $t('roles.deleteRole') }}
               </button>
-              <span v-else class="text-gray-400 text-xs">{{ $t('roles.cannotDeleteSuperAdmin') }}</span>
+              <span v-else class="text-xs text-ink-muted">{{ $t('roles.cannotDeleteSuperAdmin') }}</span>
             </td>
           </tr>
         </tbody>
@@ -72,38 +68,38 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         @click.self="modalOpen = false"
       >
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="mx-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border border-line bg-surface shadow-xl">
           <div class="p-6">
-            <h2 class="text-xl font-semibold mb-4">{{ isEdit ? $t('roles.editRole') : $t('roles.addRole') }}</h2>
+            <h2 class="mb-4 text-xl font-semibold text-ink-strong">{{ isEdit ? $t('roles.editRole') : $t('roles.addRole') }}</h2>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('roles.name') }}</label>
+                <label class="mb-1 block text-sm font-medium text-ink-main">{{ $t('roles.name') }}</label>
                 <input
                   v-model="form.name"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  class="w-full rounded-lg border border-line px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-focus"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('roles.slug') }}</label>
+                <label class="mb-1 block text-sm font-medium text-ink-main">{{ $t('roles.slug') }}</label>
                 <input
                   v-model="form.slug"
                   :readonly="isEdit"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  class="w-full rounded-lg border border-line px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-focus disabled:bg-soft/20"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('roles.descriptionColumn') }}</label>
+                <label class="mb-1 block text-sm font-medium text-ink-main">{{ $t('roles.descriptionColumn') }}</label>
                 <textarea
                   v-model="form.description"
                   rows="2"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  class="w-full rounded-lg border border-line px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-focus"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('roles.permissions') }}</label>
-                <div class="space-y-3 border rounded-lg p-3 bg-gray-50 max-h-48 overflow-y-auto">
+                <label class="mb-2 block text-sm font-medium text-ink-main">{{ $t('roles.permissions') }}</label>
+                <div class="max-h-48 space-y-3 overflow-y-auto rounded-lg border border-line bg-page p-3">
                   <div v-for="group in permissionGroups" :key="group.id" class="space-y-1">
-                    <div class="font-medium text-gray-700 text-sm">{{ group.name }}</div>
+                    <div class="text-sm font-medium text-ink-main">{{ group.name }}</div>
                     <div class="flex flex-wrap gap-2 pl-2">
                       <label
                         v-for="perm in permissionsByGroup[group.id]"
@@ -114,7 +110,7 @@
                           type="checkbox"
                           :value="perm.id"
                           v-model="form.permissionIds"
-                          class="rounded border-gray-300"
+                          class="rounded border-line"
                         />
                         {{ perm.name }}
                       </label>
@@ -126,15 +122,11 @@
             <div class="mt-6 flex justify-end gap-2">
               <button
                 @click="modalOpen = false"
-                class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                class="rounded-lg border border-line px-4 py-2 transition hover:bg-soft/20"
               >
                 {{ $t('common.cancel') }}
               </button>
-              <button
-                @click="saveRole"
-                :disabled="saving"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
+              <button @click="saveRole" :disabled="saving" class="btn-primary disabled:opacity-50">
                 {{ saving ? $t('common.loading') : $t('common.save') }}
               </button>
             </div>

@@ -1,0 +1,46 @@
+/**
+ * 全站主題 token（單一來源）。
+ * 未來多主題：可改為 [data-theme="x"] 覆寫下列變數，無需散落 hex。
+ */
+:root {
+  /* 背景層級 */
+  --color-bg-page: #f2efe9;
+  --color-bg-surface: #fffbf7;
+  --color-bg-soft: #bfb48f;
+
+  /* 文字 */
+  --color-text-main: #564e58;
+  --color-text-strong: #252627;
+  --color-text-muted: rgba(86, 78, 88, 0.72);
+
+  /* 邊框／分隔 */
+  --color-border: rgba(37, 38, 39, 0.1);
+  --color-divider: rgba(37, 38, 39, 0.08);
+
+  /* 主色（按鈕、連結強調） */
+  --color-primary: #904e55;
+  --color-primary-hover: #7a4148;
+  --color-primary-active: #66363c;
+  --color-on-primary: #fffbf7;
+  --color-primary-muted: rgba(144, 78, 85, 0.14);
+
+  /* 頂欄 */
+  --color-header-bg: #252627;
+  --color-header-text: #f2efe9;
+  --color-header-text-muted: rgba(242, 239, 233, 0.72);
+  --color-header-control-hover: rgba(255, 255, 255, 0.1);
+
+  /* 卡片 */
+  --color-card-bg: #fffbf7;
+  --color-card-border: rgba(86, 78, 88, 0.14);
+
+  /* 側欄 */
+  --color-sidebar-bg: #ede8df;
+  --color-sidebar-text: #564e58;
+  --color-sidebar-active-bg: rgba(144, 78, 85, 0.12);
+  --color-sidebar-active-fg: #904e55;
+  --color-sidebar-row-hover: rgba(37, 38, 39, 0.06);
+
+  /* 焦點環（表單等） */
+  --color-focus-ring: #904e55;
+}

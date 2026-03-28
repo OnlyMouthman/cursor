@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-page">
     <AppHeader context="front" />
     <main class="pt-14">
       <router-view />

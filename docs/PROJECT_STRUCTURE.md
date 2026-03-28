@@ -47,7 +47,7 @@ src/
 │       └── DashboardView.vue  # 後台儀表板
 │
 ├── i18n/                    # 國際化
-├── styles/                  # 全域樣式
+├── styles/                  # 全域樣式：`theme.css`（`:root` 語意 token）、`main.css`（Tailwind + `btn-primary`／`ui-card` 等）
 ├── types/                   # TypeScript 型別（含 module.ts：Hub 卡片／模組假選單）
 ├── utils/                   # 工具函數（含 permissions.ts、access.ts）
 ├── App.vue                  # 根元件
@@ -115,6 +115,12 @@ src/
 - 使用 Pinia Composition API
 - 提供 `isAuthenticated`、`displayName`、`email`、`photoURL` 等 computed
 - 提供 `setUser`、`clearUser` 方法
+
+#### Styles（主題與全域樣式）
+
+- **`styles/theme.css`**：全站視覺的單一來源，以 `--color-*` CSS 變數定義背景、文字、邊框、主色、Header、Sidebar、卡片等；日後多主題可另以 `[data-theme]` 覆寫。
+- **`styles/main.css`**：匯入 theme、Tailwind 三層、`body` 預設底色與字色；`@layer components` 提供 `btn-primary`、`ui-card`、`header-icon-btn`。
+- **`tailwind.config.js`**：`theme.extend.colors` 將語意 class（如 `bg-page`、`text-ink-strong`）對應到 `var(--color-…)`。詳見 **`docs/THEME_TOKENS.md`**。
 
 #### API
 

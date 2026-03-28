@@ -8,7 +8,7 @@
 - **Vue 3**: 現代化、高效能、Composition API 提供更好的邏輯復用
 - **Vite**: 極速開發體驗，HMR 快速，生產環境構建優化
 - **TypeScript**: 型別安全，提升開發體驗與程式碼品質
-- **Tailwind CSS**: 原子化 CSS，快速開發，易於維護
+- **Tailwind CSS**: 原子化 CSS；**品牌／介面色**透過 `theme.extend.colors` 對應 `styles/theme.css` 的 CSS 變數（語意 token），避免元件內硬編碼 hex。說明見 `docs/THEME_TOKENS.md`。
 
 #### 後端技術棧
 - **Firebase Auth**: 完整的身份驗證解決方案，支援多種登入方式

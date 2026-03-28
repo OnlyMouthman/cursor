@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="text-3xl font-bold mb-6">{{ $t('menu.settings') }}</h1>
-    <p class="text-gray-600">{{ $t('common.loading') }}</p>
+    <p class="text-ink-main">{{ $t('common.loading') }}</p>
   </div>
 </template>
 
