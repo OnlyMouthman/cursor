@@ -161,3 +161,32 @@ router.beforeEach((to, from, next) => {
 })
 ```
 
+---
+
+## 補充：平台入口（Hub）與模組路由（2026-03）
+
+以下為在「Prompt A」原始設計之上**新增**的行為，舊章節仍保留作歷史參考。
+
+### 路由樹（摘要）
+
+- **`/`** → 重新導向 **`/hub`**
+- **`/hub`**：`FrontLayout` + `HubView`，**需登入**；`meta.module: 'platform'`
+- **`/about`**：公開；`FrontLayout` + `AboutView`
+- **`/notes/*`、`/gis/*`、`/ar/*`**：`ModuleLayout`（`AppHeader` `context: 'module'` + `ManageSidebar` 依 `meta.module` 顯示假選單）+ 子路由佔位頁
+- **`/manage/*`**：維持 `ManageLayout` + Firestore 選單；`meta.module: 'manage'`
+- **未知路徑** → **`/hub`**
+
+### Auth Guard 調整
+
+- 若 **`to.matched` 中任一筆** `meta.requiresAuth === true`，則整段視為需驗證（巢狀子路由一併受保護）。
+- 帳號 **`status === disabled`**：導向 **`/about`**（避免 `/` → `/hub` 與需登入衝突）。
+
+### UserMenu 與預設導向
+
+- 登入成功預設導向 **`/hub`**（含 `AuthView`、Header 內快速登入）。
+- **`context: 'manage'`**：選單為「回到系統入口」→ `/hub`（取代舊文檔中的「回到前台」`router.push('/')` 描述）。
+
+### 權限預留
+
+- 路由可設 **`meta.module`**：`'platform' | 'manage' | 'notes' | 'gis' | 'ar'`（型別見 `frontend/src/router/meta.d.ts`），供日後依模組做 RBAC；目前模組路由**不依** `requiresPermission` 攔截。
+

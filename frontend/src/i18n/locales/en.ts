@@ -31,6 +31,8 @@ export default {
   menu: {
     enterManage: 'Enter Management',
     backToFront: 'Back to Frontend',
+    appHub: 'App Hub',
+    backToHub: 'Back to Hub',
     dashboard: 'Dashboard',
     userManagement: 'User Management',
     roleManagement: 'Role Management',
@@ -47,6 +49,16 @@ export default {
   pages: {
     about: 'About',
     aboutDescription: 'This is the about page.'
+  },
+  hub: {
+    title: 'App Hub',
+    subtitle: 'Choose a module (architecture placeholder).'
+  },
+  module: {
+    stubHint: 'Module shell only — no business logic yet.',
+    sidebarTitleNotes: 'Notes',
+    sidebarTitleGis: 'GIS',
+    sidebarTitleAr: 'AR'
   },
   users: {
     title: 'User Management',

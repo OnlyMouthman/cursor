@@ -6,68 +6,149 @@ import { hasPermission } from '@/utils/permissions'
 // Layouts
 import FrontLayout from '@/layouts/FrontLayout.vue'
 import ManageLayout from '@/layouts/ManageLayout.vue'
+import ModuleLayout from '@/layouts/ModuleLayout.vue'
 
 // Views
-import HomeView from '@/views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import AuthView from '@/views/AuthView.vue'
+import HubView from '@/views/HubView.vue'
 import ManageDashboard from '@/views/manage/DashboardView.vue'
+import NotesHome from '@/views/modules/notes/NotesHome.vue'
+import GISHome from '@/views/modules/gis/GISHome.vue'
+import ARHome from '@/views/modules/ar/ARHome.vue'
+import ModuleStubPage from '@/views/modules/ModuleStubPage.vue'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
+    redirect: '/hub'
+  },
+  {
+    path: '/hub',
     component: FrontLayout,
+    meta: { requiresAuth: true, module: 'platform' },
     children: [
       {
         path: '',
-        name: 'Home',
-        component: HomeView
-      },
+        name: 'Hub',
+        component: HubView,
+        meta: { requiresAuth: true, module: 'platform' }
+      }
+    ]
+  },
+  {
+    path: '/about',
+    component: FrontLayout,
+    meta: { module: 'platform' },
+    children: [
       {
-        path: 'about',
+        path: '',
         name: 'About',
-        component: AboutView
+        component: AboutView,
+        meta: { module: 'platform' }
       }
     ]
   },
   {
     path: '/auth',
     name: 'Auth',
-    component: AuthView
+    component: AuthView,
+    meta: { module: 'platform' }
+  },
+  {
+    path: '/notes',
+    component: ModuleLayout,
+    meta: { requiresAuth: true, module: 'notes' },
+    children: [
+      {
+        path: '',
+        name: 'NotesHome',
+        component: NotesHome,
+        meta: { requiresAuth: true, module: 'notes' }
+      },
+      {
+        path: 'explore',
+        name: 'NotesExplore',
+        component: ModuleStubPage,
+        props: { title: 'Notes — explore (stub)' },
+        meta: { requiresAuth: true, module: 'notes' }
+      }
+    ]
+  },
+  {
+    path: '/gis',
+    component: ModuleLayout,
+    meta: { requiresAuth: true, module: 'gis' },
+    children: [
+      {
+        path: '',
+        name: 'GISHome',
+        component: GISHome,
+        meta: { requiresAuth: true, module: 'gis' }
+      },
+      {
+        path: 'explore',
+        name: 'GISExplore',
+        component: ModuleStubPage,
+        props: { title: 'GIS — explore (stub)' },
+        meta: { requiresAuth: true, module: 'gis' }
+      }
+    ]
+  },
+  {
+    path: '/ar',
+    component: ModuleLayout,
+    meta: { requiresAuth: true, module: 'ar' },
+    children: [
+      {
+        path: '',
+        name: 'ARHome',
+        component: ARHome,
+        meta: { requiresAuth: true, module: 'ar' }
+      },
+      {
+        path: 'explore',
+        name: 'ARExplore',
+        component: ModuleStubPage,
+        props: { title: 'AR — explore (stub)' },
+        meta: { requiresAuth: true, module: 'ar' }
+      }
+    ]
   },
   {
     path: '/manage',
     component: ManageLayout,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, module: 'manage' },
     children: [
       {
         path: '',
         name: 'ManageDashboard',
-        component: ManageDashboard
+        component: ManageDashboard,
+        meta: { requiresAuth: true, module: 'manage' }
       },
       {
         path: 'users',
         name: 'ManageUsers',
         component: () => import('@/views/manage/UsersView.vue'),
-        meta: { requiresAuth: true, requiresPermission: 'user.view' }
+        meta: { requiresAuth: true, module: 'manage', requiresPermission: 'user.view' }
       },
       {
         path: 'roles',
         name: 'ManageRoles',
         component: () => import('@/views/manage/RolesView.vue'),
-        meta: { requiresAuth: true, requiresPermission: 'role.view' }
+        meta: { requiresAuth: true, module: 'manage', requiresPermission: 'role.view' }
       },
       {
         path: 'settings',
         name: 'ManageSettings',
         component: () => import('@/views/manage/SettingsView.vue'),
-        meta: { requiresAuth: true, requiresPermission: 'settings.view' }
+        meta: { requiresAuth: true, module: 'manage', requiresPermission: 'settings.view' }
       }
     ]
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
+    redirect: '/hub'
   }
 ]
 
@@ -76,13 +157,15 @@ const router = createRouter({
   routes
 })
 
-// Auth Guard（async：需等待 Firebase Auth + Firestore profile 就緒後再檢查權限）
-router.beforeEach(async (to: any, _from: any, next: any) => {
+// 若目標（含祖先）任一需要登入，則整段視為需驗證
+function routeRequiresAuth(to: { matched: { meta: Record<string, unknown> }[] }): boolean {
+  return to.matched.some(record => record.meta.requiresAuth === true)
+}
+
+router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
 
-  if (to.meta.requiresAuth) {
-    // 先等待 auth 與 Firestore profile 載入完成，避免 production 直連 /manage/users 時
-    // currentUser 尚未載入而被誤判為無權限並靜默導向 /manage
+  if (routeRequiresAuth(to)) {
     try {
       await userStore.waitForAuthReady()
     } catch {
@@ -98,7 +181,7 @@ router.beforeEach(async (to: any, _from: any, next: any) => {
     }
 
     if (!userStore.isActive) {
-      next('/')
+      next('/about')
       return
     }
 

@@ -22,7 +22,7 @@ import UserMenu from './UserMenu.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 
 defineProps<{
-  context: 'front' | 'manage'
+  context: 'front' | 'manage' | 'module'
 }>()
 </script>
 

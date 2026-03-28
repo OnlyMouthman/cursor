@@ -31,6 +31,8 @@ export default {
   menu: {
     enterManage: '進入後台',
     backToFront: '回到前台',
+    appHub: '系統入口',
+    backToHub: '回到系統入口',
     dashboard: '儀表板',
     userManagement: '使用者管理',
     roleManagement: '角色管理',
@@ -47,6 +49,16 @@ export default {
   pages: {
     about: '關於',
     aboutDescription: '這是關於頁面。'
+  },
+  hub: {
+    title: '系統入口',
+    subtitle: '選擇要進入的模組（目前為架構預留）。'
+  },
+  module: {
+    stubHint: '此為模組骨架頁，尚未實作業務功能。',
+    sidebarTitleNotes: 'Notes',
+    sidebarTitleGis: 'GIS',
+    sidebarTitleAr: 'AR'
   },
   users: {
     title: '使用者管理',

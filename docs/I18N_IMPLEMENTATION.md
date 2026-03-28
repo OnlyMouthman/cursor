@@ -48,7 +48,8 @@
 - ✅ `ManageSidebar.vue` - 選單項目使用 i18n
 - ✅ `AuthView.vue` - 所有文字使用 i18n
 - ✅ `DashboardView.vue` - 所有文字使用 i18n
-- ✅ `HomeView.vue` - 已使用 i18n
+- ✅ `HomeView.vue` - 已使用 i18n（檔案保留；目前未掛路由）
+- ✅ `HubView.vue` - 系統入口文案（`hub.*`）
 - ✅ `AboutView.vue` - 已使用 i18n
 
 ## 使用方式

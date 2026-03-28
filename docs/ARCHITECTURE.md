@@ -166,6 +166,12 @@ docker-compose -f docker-compose.dev.yml up
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
+## 平台與模組路由（補充）
+
+- 登入後預設進入 **`/hub`**（模組卡片入口）；**`/notes`、`/gis`、`/ar`** 等為模組殼層路由（`ModuleLayout` + 佔位頁），**`/manage/*`** 仍為後台與 RBAC 管理。
+- 詳細路由與 Guard 行為見 [ROUTING_ARCHITECTURE.md](./ROUTING_ARCHITECTURE.md) 文末「補充」一節。
+- **API 抽象層**（`src/api/`）未因模組掛載而改變；模組僅影響前端 Router／Layout／側欄資料來源切換。
+
 ## 未來擴展性
 
 1. **切換後端**: 只需實作新的 adapter，修改 `src/api/client.ts`

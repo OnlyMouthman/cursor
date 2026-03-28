@@ -19,26 +19,34 @@ src/
 │   └── ManageSidebar.vue   # 後台專用 Sidebar
 │
 ├── layouts/                 # Layout 元件
-│   ├── FrontLayout.vue     # 前台 Layout（含 Header）
-│   └── ManageLayout.vue    # 後台 Layout（含 Header + Sidebar）
+│   ├── FrontLayout.vue     # 前台 Layout（含 Header；Hub、About）
+│   ├── ManageLayout.vue    # 後台 Layout（含 Header + Sidebar）
+│   └── ModuleLayout.vue    # 模組殼層（Notes/GIS/AR；Header + Sidebar + 內容）
 │
 ├── router/                  # 路由配置
-│   └── index.ts            # 路由定義 + Auth Guard
+│   ├── index.ts            # 路由定義 + Auth Guard
+│   └── meta.d.ts           # 擴充 vue-router RouteMeta（module 等）
 │
 ├── stores/                  # Pinia 狀態管理
 │   ├── index.ts            # Pinia 實例
 │   └── user.ts             # 使用者狀態（登入狀態）
 │
 ├── views/                   # 頁面元件
-│   ├── HomeView.vue        # 前台首頁
-│   ├── AboutView.vue       # 前台關於頁
+│   ├── HubView.vue         # 系統入口（模組卡片；需登入）
+│   ├── HomeView.vue        # 保留檔案（目前未掛路由）
+│   ├── AboutView.vue       # 關於頁
 │   ├── AuthView.vue        # 登入頁
+│   ├── modules/            # 模組骨架（Notes / GIS / AR）
+│   │   ├── ModuleStubPage.vue
+│   │   ├── notes/NotesHome.vue
+│   │   ├── gis/GISHome.vue
+│   │   └── ar/ARHome.vue
 │   └── manage/             # 後台頁面
 │       └── DashboardView.vue  # 後台儀表板
 │
 ├── i18n/                    # 國際化
 ├── styles/                  # 全域樣式
-├── types/                   # TypeScript 型別
+├── types/                   # TypeScript 型別（含 module.ts：Hub 卡片／模組假選單）
 ├── utils/                   # 工具函數
 ├── App.vue                  # 根元件
 └── main.ts                  # 應用入口
@@ -56,41 +64,46 @@ src/
 **ManageLayout.vue**
 - 後台頁面的統一 Layout
 - 包含 `AppHeader`（context='manage'）
-- 包含 `ManageSidebar`（可縮合）
+- 包含 `ManageSidebar`（**`module="manage"`**，Firestore 選單 + 權限過濾；可縮合）
 - 使用 flex 佈局：左側 Sidebar + 右側主內容
+
+**ModuleLayout.vue**
+- 模組頁（Notes / GIS / AR）共用殼層
+- 包含 `AppHeader`（context='module'）
+- 包含 `ManageSidebar`（依路由 `meta.module` 顯示**假選單**，不呼叫 Firestore menus）
 
 #### Components
 
 **AppHeader.vue**
-- 前台和後台共用的 Header
+- 前台、後台、模組共用的 Header
 - 固定高度（56px / h-14）
-- 透過 `context` prop 控制顯示內容
+- 透過 `context` prop 控制顯示內容：`front` | `manage` | `module`
 - 包含 Logo 和 `UserMenu`
 
 **UserMenu.vue**
-- 前台和後台共用的使用者選單
+- 前台、後台、模組共用的使用者選單
 - 未登入：顯示「Google 登入」按鈕
 - 已登入：顯示頭像 + dropdown
 - 透過 `context` prop 控制 dropdown 內容：
   - `context='front'` → 「進入後台」、「登出」
-  - `context='manage'` → 「回到前台」、「登出」
+  - `context='manage'` → 「回到系統入口」（`/hub`）、「登出」
+  - `context='module'` → 「系統入口」、「進入後台」、「登出」
 - 點擊外部自動關閉 dropdown
 
 **ManageSidebar.vue**
-- 後台專用的側邊欄
-- 可縮合（collapse/expand）
-- 縮合時只顯示 icon，展開顯示 icon + 文字
-- 高度滿版（扣掉 Header）
-- 使用 local state 管理縮合狀態
+- 側邊欄；**`module` prop**：`manage` | `notes` | `gis` | `ar`（預設 `manage`）
+- `manage`：Firestore `menus` 組樹 + 權限過濾（與舊行為相同）
+- `notes` / `gis` / `ar`：顯示假選單（`types/module.ts`），供模組 UI 擴展
+- 可縮合（collapse/expand）；高度滿版（扣掉 Header）
 
 #### Router
 
 **router/index.ts**
-- 定義所有路由
+- 定義所有路由（含 `/hub`、模組前綴、`/` 與萬用路徑導向 hub）
 - 實作 Auth Guard：
-  - 檢查 `meta.requiresAuth`
-  - 未登入訪問後台 → 導向 `/auth`
-  - 儲存 `redirect` query 參數
+  - **`matched` 鏈上任一** `requiresAuth` 即驗證
+  - 未登入 → 導向 `/auth` 並帶 `redirect`
+  - 停用帳號 → 導向 `/about`
 
 #### Stores
 

@@ -86,7 +86,7 @@ const handleGoogleLogin = async () => {
     userStore.setUser(user)
     
     // 登入成功後導向原目標或後台
-    const redirect = (route.query.redirect as string) || '/manage'
+    const redirect = (route.query.redirect as string) || '/hub'
     router.push(redirect)
   } catch (err: any) {
     error.value = err.message || t('auth.loginFailed')
