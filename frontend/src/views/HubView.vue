@@ -5,7 +5,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <router-link
-        v-for="card in cards"
+        v-for="card in visibleCards"
         :key="card.key"
         :to="card.path"
         class="ui-card group block border p-5 hover:border-primary/25 hover:shadow-md"
@@ -19,7 +19,23 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useUserStore } from '@/stores/user'
+import { usePermissionStore } from '@/stores/permission'
+import { hasPermission } from '@/utils/permissions'
 import { HUB_MODULE_CARDS } from '@/types/module'
+import type { PermissionSlug } from '@/types/rbac'
 
-const cards = HUB_MODULE_CARDS
+const userStore = useUserStore()
+const permissionStore = usePermissionStore()
+const { loadedForUid, permissionSlugs } = storeToRefs(permissionStore)
+
+const visibleCards = computed(() => {
+  loadedForUid.value
+  permissionSlugs.value
+  return HUB_MODULE_CARDS.filter(c =>
+    hasPermission(userStore.currentUser, `${c.key}.view` as PermissionSlug)
+  )
+})
 </script>

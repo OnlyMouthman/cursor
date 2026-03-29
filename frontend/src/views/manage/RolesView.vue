@@ -36,7 +36,19 @@
         </thead>
         <tbody class="divide-y divide-line bg-surface">
           <tr v-for="role in roles" :key="role.id" class="hover:bg-soft/15">
-            <td class="whitespace-nowrap px-6 py-4 font-medium text-ink-strong">{{ role.name }}</td>
+            <td class="whitespace-nowrap px-6 py-4">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-medium text-ink-strong">{{ role.name }}</span>
+                <span
+                  v-if="role.isSystem === true"
+                  class="rounded bg-soft/40 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-muted"
+                >{{ $t('roles.badgeSystem') }}</span>
+                <span
+                  v-if="showGuestRoleHint(role)"
+                  class="text-xs text-ink-muted"
+                >{{ $t('roles.guestRoleHint') }}</span>
+              </div>
+            </td>
             <td class="whitespace-nowrap px-6 py-4 font-mono text-sm text-ink-main">{{ role.slug }}</td>
             <td class="max-w-xs px-6 py-4 text-ink-main">{{ role.description || '—' }}</td>
             <td class="whitespace-nowrap px-6 py-4 text-ink-main">{{ rolePermissionCounts[role.id] ?? 0 }}</td>
@@ -48,13 +60,13 @@
                 {{ $t('roles.editRole') }}
               </button>
               <button
-                v-if="role.slug !== superAdminSlug"
+                v-if="isRoleDeletable(role)"
                 @click="confirmDelete(role)"
                 class="text-red-600 hover:underline"
               >
                 {{ $t('roles.deleteRole') }}
               </button>
-              <span v-else class="text-xs text-ink-muted">{{ $t('roles.cannotDeleteSuperAdmin') }}</span>
+              <span v-else class="text-xs text-ink-muted">{{ $t(deleteBlockedMessageKey(role)) }}</span>
             </td>
           </tr>
         </tbody>
@@ -151,13 +163,30 @@ import {
   createRole,
   deleteRole
 } from '@/api/firebase/rbac'
-import { SUPER_ADMIN_SLUG } from '@/types/rbac'
+import { SUPER_ADMIN_SLUG, GUEST_SLUG } from '@/types/rbac'
 import type { Role, PermissionGroup, Permission } from '@/types/rbac'
 
 const { t } = useI18n()
 const permissionStore = usePermissionStore()
 const canEdit = computed(() => permissionStore.can('role.edit'))
-const superAdminSlug = SUPER_ADMIN_SLUG
+/** 以 isDeletable 為主；舊資料無欄位時依 slug fallback */
+function isRoleDeletable(role: Role): boolean {
+  if (role.isDeletable === false) return false
+  if (role.isDeletable === true) return true
+  return role.slug !== SUPER_ADMIN_SLUG && role.slug !== GUEST_SLUG
+}
+
+/** 不可刪除時的 i18n 鍵（super_admin / guest 專屬文案，其餘 protected） */
+function deleteBlockedMessageKey(role: Role): 'roles.cannotDeleteSuperAdmin' | 'roles.cannotDeleteGuest' | 'roles.cannotDeleteProtected' {
+  if (role.slug === SUPER_ADMIN_SLUG) return 'roles.cannotDeleteSuperAdmin'
+  if (role.slug === GUEST_SLUG) return 'roles.cannotDeleteGuest'
+  return 'roles.cannotDeleteProtected'
+}
+
+/** 以 metadata 標示訪客用途（未登入），避免僅依 slug */
+function showGuestRoleHint(role: Role): boolean {
+  return role.assignable === false && role.isSystem === true && role.isDeletable === false
+}
 
 const loading = ref(true)
 const error = ref('')

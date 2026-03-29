@@ -31,7 +31,9 @@ export const ROLE_IDS = {
   superAdmin: 'role_super_admin',
   admin: 'role_admin',
   editor: 'role_editor',
-  viewer: 'role_viewer'
+  viewer: 'role_viewer',
+  /** 未登入預設角色（資料層預留，尚未套用權限流程） */
+  guest: 'role_guest'
 } as const
 
 /** 模組對應的權限群組 ID */
@@ -93,22 +95,41 @@ export async function seedRoles(): Promise<void> {
   await setRole(ROLE_IDS.superAdmin, {
     name: 'Super Admin',
     slug: SUPER_ADMIN_SLUG,
-    description: 'Bypasses all permission checks'
+    description: 'Bypasses all permission checks',
+    isSystem: true,
+    isDeletable: false
   })
   await setRole(ROLE_IDS.admin, {
     name: 'Admin',
     slug: 'admin',
-    description: 'Full access to user, role, menu, settings'
+    description: 'Full access to user, role, menu, settings',
+    isSystem: true,
+    isDeletable: true,
+    assignable: true
   })
   await setRole(ROLE_IDS.editor, {
     name: 'Editor',
     slug: 'editor',
-    description: 'Limited edit access'
+    description: 'Limited edit access',
+    isSystem: true,
+    isDeletable: true,
+    assignable: true
   })
   await setRole(ROLE_IDS.viewer, {
     name: 'Viewer',
     slug: 'viewer',
-    description: 'View only'
+    description: 'View only',
+    isSystem: true,
+    isDeletable: true,
+    assignable: true
+  })
+  await setRole(ROLE_IDS.guest, {
+    name: '訪客',
+    slug: 'guest',
+    description: '未登入使用者的預設角色',
+    isSystem: true,
+    isDeletable: false,
+    assignable: false
   })
 }
 
@@ -149,6 +170,7 @@ export async function seedRolePermissions(): Promise<void> {
   await bindRoleSlugs(ROLE_IDS.admin, adminSlugs)
   await bindRoleSlugs(ROLE_IDS.editor, editorSlugs)
   await bindRoleSlugs(ROLE_IDS.viewer, viewerSlugs)
+  await bindRoleSlugs(ROLE_IDS.guest, ['notes.view'])
 }
 
 /**

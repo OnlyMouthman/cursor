@@ -104,9 +104,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useUserStore } from '@/stores/user'
 import { usePermissionStore } from '@/stores/permission'
+import { hasPermission } from '@/utils/permissions'
+import type { PermissionSlug } from '@/types/rbac'
 import { getMenusWithPermissionSlugs, buildMenuTree } from '@/api/menus'
 import type { MenuTreeNode } from '@/types/rbac'
 import {
@@ -125,14 +129,32 @@ const props = withDefaults(
 
 const route = useRoute()
 const { t } = useI18n()
+const userStore = useUserStore()
 const permissionStore = usePermissionStore()
+const { loadedForUid, permissionSlugs } = storeToRefs(permissionStore)
+
+function viewSlugForStubRoute(path: string): PermissionSlug | null {
+  if (path.startsWith('/notes')) return 'notes.view'
+  if (path.startsWith('/gis')) return 'gis.view'
+  if (path.startsWith('/ar')) return 'ar.view'
+  return null
+}
 const isCollapsed = ref(false)
 
 const isModuleMode = computed(() => props.module !== 'manage')
 
 const sidebarTitleKey = computed(() => sidebarTitleKeyForModule(props.module))
 
-const stubMenuItems = computed(() => MODULE_STUB_MENUS[props.module] ?? [])
+const stubMenuItems = computed(() => {
+  loadedForUid.value
+  permissionSlugs.value
+  const items = MODULE_STUB_MENUS[props.module] ?? []
+  return items.filter(item => {
+    const slug = viewSlugForStubRoute(item.route)
+    if (!slug) return true
+    return hasPermission(userStore.currentUser, slug)
+  })
+})
 
 function isStubActive(path: string): boolean {
   return route.path === path

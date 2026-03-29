@@ -4,7 +4,7 @@
  * 委派給 permission store；SuperAdmin 一律通過
  */
 
-import { usePermissionStore } from '@/stores/permission'
+import { usePermissionStore, GUEST_LOADED_UID } from '@/stores/permission'
 import type { PermissionSlug } from '@/types/rbac'
 import type { UserDocument } from '@/types/user'
 
@@ -16,10 +16,14 @@ export function hasPermission(
   user: UserDocument | null | undefined,
   permission: PermissionSlug
 ): boolean {
-  if (!user) return false
-  if (user.status === 'disabled') return false
-
   const permStore = usePermissionStore()
+
+  if (!user) {
+    if (permStore.loadedForUid !== GUEST_LOADED_UID) return false
+    return permStore.can(permission)
+  }
+
+  if (user.status === 'disabled') return false
   if (permStore.loadedForUid !== user.uid) return false
   return permStore.can(permission)
 }
@@ -31,8 +35,14 @@ export function hasAnyPermission(
   user: UserDocument | null | undefined,
   permissions: PermissionSlug[]
 ): boolean {
-  if (!user || user.status === 'disabled') return false
   const permStore = usePermissionStore()
+
+  if (!user) {
+    if (permStore.loadedForUid !== GUEST_LOADED_UID) return false
+    return permissions.some(perm => permStore.can(perm))
+  }
+
+  if (user.status === 'disabled') return false
   if (permStore.loadedForUid !== user.uid) return false
   return permissions.some(perm => permStore.can(perm))
 }
@@ -44,8 +54,14 @@ export function hasAllPermissions(
   user: UserDocument | null | undefined,
   permissions: PermissionSlug[]
 ): boolean {
-  if (!user || user.status === 'disabled') return false
   const permStore = usePermissionStore()
+
+  if (!user) {
+    if (permStore.loadedForUid !== GUEST_LOADED_UID) return false
+    return permissions.every(perm => permStore.can(perm))
+  }
+
+  if (user.status === 'disabled') return false
   if (permStore.loadedForUid !== user.uid) return false
   return permissions.every(perm => permStore.can(perm))
 }
@@ -55,9 +71,15 @@ export function hasAllPermissions(
  * 若尚未載入則回傳空陣列
  */
 export function getUserPermissions(user: UserDocument | null | undefined): PermissionSlug[] {
-  if (!user || user.status === 'disabled') return []
-
   const permStore = usePermissionStore()
+
+  if (!user) {
+    if (permStore.loadedForUid !== GUEST_LOADED_UID) return []
+    const slugs = permStore.permissionSlugs
+    return slugs[0] === '*' ? [] : [...slugs]
+  }
+
+  if (user.status === 'disabled') return []
   if (permStore.loadedForUid !== user.uid) return []
   const slugs = permStore.permissionSlugs
   return slugs[0] === '*' ? [] : [...slugs]

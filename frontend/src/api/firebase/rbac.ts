@@ -28,6 +28,18 @@ import type {
 
 const firestore = () => getFirebaseFirestore()
 
+function mapRoleFields(data: DocumentData): Omit<Role, 'id'> {
+  const base: Omit<Role, 'id'> = {
+    name: data.name ?? '',
+    slug: data.slug ?? '',
+    description: data.description
+  }
+  if (typeof data.isSystem === 'boolean') base.isSystem = data.isSystem
+  if (typeof data.isDeletable === 'boolean') base.isDeletable = data.isDeletable
+  if (typeof data.assignable === 'boolean') base.assignable = data.assignable
+  return base
+}
+
 function toData<T extends { id: string }>(
   docSnap: QueryDocumentSnapshot<DocumentData>,
   map: (data: DocumentData) => Omit<T, 'id'>
@@ -129,24 +141,14 @@ export async function listRoles(): Promise<Role[]> {
   const ref = collection(firestore(), 'roles')
   const q = query(ref, orderBy('slug'))
   const snap = await getDocs(q)
-  return snap.docs.map(d =>
-    toData<Role>(d, data => ({
-      name: data.name ?? '',
-      slug: data.slug ?? '',
-      description: data.description
-    }))
-  )
+  return snap.docs.map(d => toData<Role>(d, mapRoleFields))
 }
 
 export async function getRole(id: string): Promise<Role | null> {
   const ref = doc(firestore(), 'roles', id)
   const snap = await getDoc(ref)
   if (!snap.exists()) return null
-  return toData<Role>(snap as QueryDocumentSnapshot<DocumentData>, data => ({
-    name: data.name ?? '',
-    slug: data.slug ?? '',
-    description: data.description
-  }))
+  return toData<Role>(snap as QueryDocumentSnapshot<DocumentData>, mapRoleFields)
 }
 
 export async function getRoleBySlug(slug: string): Promise<Role | null> {
@@ -155,25 +157,21 @@ export async function getRoleBySlug(slug: string): Promise<Role | null> {
   const snap = await getDocs(q)
   if (snap.empty) return null
   const d = snap.docs[0]
-  return toData<Role>(d, data => ({
-    name: data.name ?? '',
-    slug: data.slug ?? '',
-    description: data.description
-  }))
+  return toData<Role>(d, mapRoleFields)
 }
 
 /** 建立或覆寫角色（用於 seed / 管理） */
 export async function setRole(id: string, data: Omit<Role, 'id'>): Promise<void> {
   const ref = doc(firestore(), 'roles', id)
-  await setDoc(
-    ref,
-    {
-      name: data.name,
-      slug: data.slug,
-      description: data.description ?? null
-    },
-    { merge: true }
-  )
+  const payload: Record<string, unknown> = {
+    name: data.name,
+    slug: data.slug,
+    description: data.description ?? null
+  }
+  if (typeof data.isSystem === 'boolean') payload.isSystem = data.isSystem
+  if (typeof data.isDeletable === 'boolean') payload.isDeletable = data.isDeletable
+  if (typeof data.assignable === 'boolean') payload.assignable = data.assignable
+  await setDoc(ref, payload, { merge: true })
 }
 
 /** 新增角色（產生 id 為 role_<slug>） */
@@ -185,10 +183,13 @@ export async function createRole(data: Omit<Role, 'id'>): Promise<Role> {
   return created
 }
 
-/** 刪除角色（禁止刪除 super_admin） */
+/** 刪除角色（禁止刪除 super_admin；若文件含 isDeletable:false 亦禁止） */
 export async function deleteRole(roleId: string): Promise<void> {
   const role = await getRole(roleId)
   if (!role) return
+  if (role.isDeletable === false) {
+    throw new Error('Cannot delete protected role')
+  }
   const { SUPER_ADMIN_SLUG } = await import('@/types/rbac')
   if (role.slug === SUPER_ADMIN_SLUG) {
     throw new Error('Cannot delete SuperAdmin role')

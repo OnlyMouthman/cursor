@@ -306,7 +306,13 @@ function openCreateChildModal() {
   textModalPlaceholder.value = t('notes.groupNamePlaceholder')
   textModalOpen.value = true
 }
+import { seedRbac } from '@/api/firebase/rbacSeed'
 
+if (import.meta.env.DEV) {
+  // @ts-ignore
+  window.seedRbac = seedRbac
+  console.log("~~~~~~~~")
+}
 function openRenameModal(id: string) {
   if (!canEdit.value) return
   const name = findGroupName(groupTree.value, id) ?? ''

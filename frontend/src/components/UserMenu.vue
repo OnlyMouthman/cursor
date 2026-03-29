@@ -271,7 +271,7 @@ const handleLogin = async () => {
 const handleLogout = async () => {
   try {
     await authAPI.signOut()
-    userStore.clearUser()
+    await userStore.clearUser()
     closeDropdown()
     router.push('/')
   } catch (error: any) {

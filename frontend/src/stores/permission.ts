@@ -9,6 +9,9 @@ import { getRole, getRoleBySlug, getPermissionSlugsByRoleId } from '@/api/fireba
 import { SUPER_ADMIN_SLUG } from '@/types/rbac'
 import type { PermissionSlug } from '@/types/rbac'
 
+/** 未登入時 permission store 的 loadedForUid 標記（非 Firebase uid） */
+export const GUEST_LOADED_UID = 'guest'
+
 const CACHE_KEY_PREFIX = 'permission:'
 const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
 
@@ -108,6 +111,32 @@ export const usePermissionStore = defineStore('permission', () => {
     return slugs
   }
 
+  /** 未登入：載入 Firestore guest 角色之權限（由 user store 於登出／初始無使用者時觸發） */
+  async function loadForGuest(): Promise<string[]> {
+    try {
+      const role = await getRoleBySlug('guest')
+      let slugs: string[] = []
+      if (role) {
+        if (role.slug === SUPER_ADMIN_SLUG) {
+          slugs = ['*']
+        } else {
+          slugs = await getPermissionSlugsByRoleId(role.id)
+        }
+      }
+      roleSlug.value = role?.slug ?? 'guest'
+      permissionSlugs.value = slugs
+      loadedForUid.value = GUEST_LOADED_UID
+      return slugs
+    } catch (e) {
+      console.error("loadForGuest failed:", e)
+      
+      roleSlug.value = 'guest'
+      permissionSlugs.value = []
+      loadedForUid.value = GUEST_LOADED_UID
+      return []
+    }
+  }
+
   function clear() {
     permissionSlugs.value = []
     roleSlug.value = null
@@ -143,6 +172,7 @@ export const usePermissionStore = defineStore('permission', () => {
     loadedForUid,
     isSuperAdmin,
     loadForUser,
+    loadForGuest,
     clear,
     can,
     canAny,

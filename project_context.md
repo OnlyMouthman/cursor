@@ -97,6 +97,7 @@ frontend/src/
 - 平台負責管理全域路由進入規則
 - 模組只管理自己的子路由
 - 權限採 router meta + RBAC 控制
+- 模組父路由可設 `meta.viewPermission`（如 `notes.view`）：`router` guard 以 `hasPermission(currentUser, …)` 檢查，無權導向 `/`；Hub 模組卡片與模組內假側欄連結亦依對應 `*.view` 過濾
 - `editablePermission` 作為模組內編輯能力判斷依據
 
 ---
@@ -104,6 +105,9 @@ frontend/src/
 ## 6. RBAC 規則
 
 - 平台統一管理角色、權限、選單
+- 內建角色種子含 `guest`（文件 id `role_guest`，slug `guest`）。**未登入時**由 `permission` store 的 `loadForGuest()` 自 Firestore 載入該角色權限；`loadedForUid` 使用常數字串 `guest`（非 Firebase uid）。`hasPermission(null, …)` 在此狀態下改以 `permissionStore.can` 判定。不建立 guest 使用者文件
+- `Role` 型別與 Firestore 可選 metadata：`isSystem`、`isDeletable`、`assignable`（舊文件無欄位時讀取端省略，刪除 API 仍保留 `super_admin` slug 之 fallback）
+- 角色管理（`RolesView`）：刪除鈕以 `isDeletable` 為主、slug 為舊資料 fallback；系統／訪客提示以 metadata 為主（如 `assignable === false` + `isSystem` 顯示訪客說明）。使用者管理（`UsersView`）角色下拉僅列出 `assignable !== false`，若使用者目前角色不可指派則仍顯示該選項以便閱讀
 - 模組只宣告自己需要的 permission slug
 - 模組權限命名建議：
   - `notes.view`

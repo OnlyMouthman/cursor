@@ -123,7 +123,11 @@ export default {
     deleteRole: '刪除',
     permissions: '權限',
     confirmDelete: '確定要刪除此角色？',
-    cannotDeleteSuperAdmin: '不可刪除 SuperAdmin 角色'
+    cannotDeleteSuperAdmin: '不可刪除 SuperAdmin 角色',
+    cannotDeleteGuest: '訪客角色不可刪除',
+    cannotDeleteProtected: '此角色不可刪除',
+    badgeSystem: '系統',
+    guestRoleHint: '未登入使用者'
   },
   notes: {
     treeSection: '筆記分類樹',

@@ -1,11 +1,14 @@
 /**
  * 公開瀏覽：/hub、/notes、/gis、/ar 不設 requiresAuth。
+ * 模組父層可設 meta.viewPermission（如 notes.view）由 guard 檢查可否進入。
  * 子路由可選 meta.editablePermission（如 'notes.edit'）配合 usePageAccess 決定 canEdit。
  */
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { hasPermission } from '@/utils/permissions'
+import { getDeepestRouteMetaValue } from '@/utils/access'
+import type { PermissionSlug } from '@/types/rbac'
 
 // Layouts
 import FrontLayout from '@/layouts/FrontLayout.vue'
@@ -62,7 +65,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/notes',
     component: ModuleLayout,
-    meta: { module: 'notes', editablePermission: 'notes.edit' },
+    meta: {
+      module: 'notes',
+      viewPermission: 'notes.view',
+      editablePermission: 'notes.edit'
+    },
     children: [
       {
         path: '',
@@ -82,7 +89,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/gis',
     component: ModuleLayout,
-    meta: { module: 'gis', editablePermission: 'gis.edit' },
+    meta: {
+      module: 'gis',
+      viewPermission: 'gis.view',
+      editablePermission: 'gis.edit'
+    },
     children: [
       {
         path: '',
@@ -102,7 +113,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/ar',
     component: ModuleLayout,
-    meta: { module: 'ar', editablePermission: 'ar.edit' },
+    meta: {
+      module: 'ar',
+      viewPermission: 'ar.view',
+      editablePermission: 'ar.edit'
+    },
     children: [
       {
         path: '',
@@ -198,6 +213,19 @@ router.beforeEach(async (to, _from, next) => {
         next('/manage')
         return
       }
+    }
+  }
+
+  const viewPermRaw = getDeepestRouteMetaValue(to.matched, 'viewPermission')
+  if (typeof viewPermRaw === 'string' && viewPermRaw !== '') {
+    try {
+      await userStore.waitForAuthReady()
+    } catch {
+      // 逾時仍檢查：可能 guest 尚未載入，hasPermission 為 false 時導向首頁
+    }
+    if (!hasPermission(userStore.currentUser, viewPermRaw as PermissionSlug)) {
+      next('/')
+      return
     }
   }
 

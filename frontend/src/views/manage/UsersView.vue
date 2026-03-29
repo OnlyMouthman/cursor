@@ -132,7 +132,7 @@
                 :disabled="updatingUsers.has(user.uid)"
                 class="rounded border border-line px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
               >
-                <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
+                <option v-for="r in roleSelectOptionsFor(user)" :key="r.id" :value="r.id">{{ r.name }}</option>
               </select>
               <span v-else class="text-sm text-ink-strong">
                 {{ roleName(user) }}
@@ -222,6 +222,17 @@ function roleName(user: UserDocument): string {
   const id = effectiveRoleId(user)
   const r = roleOptions.value.find((x) => x.id === id)
   return r?.name ?? user.role
+}
+
+/** 可指派角色：預設排除 assignable === false；若使用者目前角色為不可指派，仍顯示該筆以利呈現 */
+function roleSelectOptionsFor(user: UserDocument): Role[] {
+  const assignable = roleOptions.value.filter(r => r.assignable !== false)
+  const curId = effectiveRoleId(user)
+  const cur = roleOptions.value.find(r => r.id === curId)
+  if (cur && cur.assignable === false && !assignable.some(r => r.id === cur.id)) {
+    return [cur, ...assignable]
+  }
+  return assignable
 }
 
 // 過濾後的使用者列表

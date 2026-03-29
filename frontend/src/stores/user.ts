@@ -51,12 +51,16 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /**
-   * 清除使用者資料（含 RBAC 權限快取）
+   * 清除使用者資料；未登入時改載入 guest 角色權限（不呼叫 permission clear，以免清空訪客上下文）
    */
-  function clearUser() {
+  async function clearUser() {
     user.value = null
     currentUser.value = null
-    usePermissionStore().clear()
+    try {
+      await usePermissionStore().loadForGuest()
+    } catch (e) {
+      console.error('loadForGuest failed:', e)
+    }
   }
 
   function setLoading(value: boolean) {
@@ -119,7 +123,7 @@ export const useUserStore = defineStore('user', () => {
         authReadyResolve?.()
         authReadyResolve = null
       } else {
-        clearUser()
+        await clearUser()
         authReadyResolve?.()
         authReadyResolve = null
       }

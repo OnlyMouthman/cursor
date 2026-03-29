@@ -123,7 +123,11 @@ export default {
     deleteRole: 'Delete',
     permissions: 'Permissions',
     confirmDelete: 'Delete this role?',
-    cannotDeleteSuperAdmin: 'Cannot delete SuperAdmin role'
+    cannotDeleteSuperAdmin: 'Cannot delete SuperAdmin role',
+    cannotDeleteGuest: 'Guest role cannot be deleted',
+    cannotDeleteProtected: 'This role cannot be deleted',
+    badgeSystem: 'System',
+    guestRoleHint: 'For signed-out visitors'
   },
   notes: {
     treeSection: 'Note groups tree',

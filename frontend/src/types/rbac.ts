@@ -28,6 +28,12 @@ export interface Role {
   name: string
   slug: string
   description?: string
+  /** 內建／系統預留角色（如 super_admin、guest） */
+  isSystem?: boolean
+  /** 是否允許刪除；未寫入舊資料時由 API 另依 slug 等規則 fallback */
+  isDeletable?: boolean
+  /** 是否可指派給使用者（如 guest 僅供未登入情境預留） */
+  assignable?: boolean
 }
 
 /** 角色–權限關聯（存於 Firestore role_permissions 集合） */
@@ -72,3 +78,6 @@ export type RbacModuleSlug = (typeof RBAC_MODULES)[number]
 
 /** SuperAdmin 角色 slug（規格約定） */
 export const SUPER_ADMIN_SLUG = 'super_admin'
+
+/** Guest 角色 slug（未登入預設角色；UI fallback 與訊息鍵對照用） */
+export const GUEST_SLUG = 'guest'

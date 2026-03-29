@@ -24,6 +24,24 @@ service cloud.firestore {
              getRoleSlug() in ['admin', 'super_admin'];
     }
 
+    /** 訪客角色文件 id（與種子 ROLE_IDS.guest 一致） */
+    function guestRoleDocId() {
+      return 'role_guest';
+    }
+
+    /**
+     * 匿名讀 RBAC：僅供前端 loadForGuest 解析 notes.view 等（getRoleBySlug('guest') +
+     * getPermissionSlugsByRoleId 會讀 roles / role_permissions / 全量 permissions 目錄）。
+     * 不開放寫入；不開放讀取其他角色或任意使用者的 users。
+     */
+    function guestRoleReadAllowed() {
+      return resource.data.slug == 'guest';
+    }
+
+    function guestRolePermissionBindingReadAllowed() {
+      return resource.data.roleId == guestRoleDocId();
+    }
+
     /** Notes：與種子 RBAC 對齊，具 notes.edit 預設為 super_admin / admin / editor（非 role_permissions 即時查詢） */
     function notesUserDocExistsAndActive() {
       return request.auth != null &&
@@ -85,12 +103,12 @@ service cloud.firestore {
     }
 
     match /roles/{roleId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null || guestRoleReadAllowed();
       allow write: if request.auth != null && isAdminOrSuperAdmin();
     }
 
     match /permissions/{permId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow write: if request.auth != null && isAdminOrSuperAdmin();
     }
 
@@ -100,7 +118,7 @@ service cloud.firestore {
     }
 
     match /role_permissions/{rpId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null || guestRolePermissionBindingReadAllowed();
       allow write: if request.auth != null && isAdminOrSuperAdmin();
     }
 
