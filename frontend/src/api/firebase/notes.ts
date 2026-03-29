@@ -18,10 +18,14 @@ import {
   updateDoc,
   where,
   type DocumentData,
+  type DocumentSnapshot,
   type QueryDocumentSnapshot,
   type Timestamp,
   serverTimestamp
 } from 'firebase/firestore'
+import { useUserStore } from '@/stores/user'
+import { hasPermission } from '@/utils/permissions'
+import type { PermissionSlug } from '@/types/rbac'
 import { getFirebaseFirestore } from './config'
 import type {
   CreateNoteGroupPayload,
@@ -30,11 +34,32 @@ import type {
   NoteFormat,
   NoteGroup,
   NoteGroupTreeNode,
+  NoteVisibility,
   UpdateNoteGroupPayload,
   UpdateNotePayload
 } from '@/types/notes'
 
 const db = () => getFirebaseFirestore()
+
+/**
+ * 是否使用「完整讀取」Firestore 查詢（含 private）。
+ * 與 `useNotesDataAccess().canReadAllNotes` 邏輯須一致。
+ */
+export function notesUseFullReadQueries(): boolean {
+  const userStore = useUserStore()
+  if (!userStore.isAuthenticated || !userStore.isActive) return false
+  const u = userStore.currentUser
+  if (!u) return false
+  return (
+    hasPermission(u, 'notes.view' as PermissionSlug) ||
+    hasPermission(u, 'notes.edit' as PermissionSlug)
+  )
+}
+
+/** 舊資料缺 visibility 時視為 private（與 rules／查詢一致） */
+function visibilityFromField(v: unknown): NoteVisibility {
+  return v === 'public' ? 'public' : 'private'
+}
 
 /** 模組命名空間，避免與既有集合（users、menus…）衝突 */
 export const NOTES_COLLECTION_GROUPS = 'notes_groups'
@@ -49,21 +74,24 @@ function tsToDate(v: unknown): Date {
 }
 
 function docToGroup(
-  snap: QueryDocumentSnapshot<DocumentData>
+  snap: DocumentSnapshot<DocumentData> | QueryDocumentSnapshot<DocumentData>
 ): NoteGroup {
-  const d = snap.data()
+  const d = snap.data()!
   return {
     id: snap.id,
     name: String(d.name ?? ''),
     parentId: d.parentId ?? null,
     sortOrder: typeof d.sortOrder === 'number' ? d.sortOrder : 0,
+    visibility: visibilityFromField(d.visibility),
     createdAt: tsToDate(d.createdAt),
     updatedAt: tsToDate(d.updatedAt)
   }
 }
 
-function docToNote(snap: QueryDocumentSnapshot<DocumentData>): NoteEntry {
-  const d = snap.data()
+function docToNote(
+  snap: DocumentSnapshot<DocumentData> | QueryDocumentSnapshot<DocumentData>
+): NoteEntry {
+  const d = snap.data()!
   const format = d.format === 'text' || d.format === 'markdown' ? d.format : 'markdown'
   return {
     id: snap.id,
@@ -71,6 +99,7 @@ function docToNote(snap: QueryDocumentSnapshot<DocumentData>): NoteEntry {
     title: String(d.title ?? ''),
     content: String(d.content ?? ''),
     format,
+    visibility: visibilityFromField(d.visibility),
     createdAt: tsToDate(d.createdAt),
     updatedAt: tsToDate(d.updatedAt)
   }
@@ -110,7 +139,14 @@ export function buildNoteGroupTree(flat: NoteGroup[]): NoteGroupTreeNode[] {
 
 async function listAllGroups(): Promise<NoteGroup[]> {
   const ref = collection(db(), NOTES_COLLECTION_GROUPS)
-  const snap = await getDocs(query(ref, orderBy('sortOrder', 'asc')))
+  const q = notesUseFullReadQueries()
+    ? query(ref, orderBy('sortOrder', 'asc'))
+    : query(
+        ref,
+        where('visibility', '==', 'public'),
+        orderBy('sortOrder', 'asc')
+      )
+  const snap = await getDocs(q)
   return snap.docs.map(d => docToGroup(d as QueryDocumentSnapshot<DocumentData>))
 }
 
@@ -135,12 +171,14 @@ export async function createGroup(
       throw new Error('父分類不存在')
     }
   }
+  const visibility: NoteVisibility = payload.visibility ?? 'private'
   const now = serverTimestamp()
   const col = collection(db(), NOTES_COLLECTION_GROUPS)
   const docRef = await addDoc(col, {
     name,
     parentId,
     sortOrder: payload.sortOrder ?? 0,
+    visibility,
     createdAt: now,
     updatedAt: now
   })
@@ -148,7 +186,7 @@ export async function createGroup(
   if (!created.exists()) {
     throw new Error('建立分類失敗')
   }
-  return docToGroup(created as QueryDocumentSnapshot<DocumentData>)
+  return docToGroup(created)
 }
 
 /** 更新分類（部分欄位） */
@@ -197,10 +235,13 @@ export async function updateGroup(
   if (payload.sortOrder !== undefined) {
     updates.sortOrder = payload.sortOrder
   }
+  if (payload.visibility !== undefined) {
+    updates.visibility = payload.visibility
+  }
 
   await updateDoc(ref, updates)
   const after = await getDoc(ref)
-  return docToGroup(after as QueryDocumentSnapshot<DocumentData>)
+  return docToGroup(after)
 }
 
 /** 刪除分類（有子分類或有筆記時拒絕） */
@@ -235,7 +276,13 @@ export async function deleteGroup(id: string): Promise<void> {
 /** 某分類底下筆記列表（依 updatedAt 新到舊；純前端排序，免複合索引） */
 export async function getNotesByGroup(groupId: string): Promise<NoteEntry[]> {
   const ref = collection(db(), NOTES_COLLECTION_ENTRIES)
-  const q = query(ref, where('groupId', '==', groupId))
+  const q = notesUseFullReadQueries()
+    ? query(ref, where('groupId', '==', groupId))
+    : query(
+        ref,
+        where('groupId', '==', groupId),
+        where('visibility', '==', 'public')
+      )
   const snap = await getDocs(q)
   const list = snap.docs.map(d =>
     docToNote(d as QueryDocumentSnapshot<DocumentData>)
@@ -256,6 +303,7 @@ export async function createNote(payload: CreateNotePayload): Promise<NoteEntry>
     throw new Error('筆記標題不可為空')
   }
   const format: NoteFormat = payload.format ?? 'markdown'
+  const visibility: NoteVisibility = payload.visibility ?? 'private'
   const now = serverTimestamp()
   const col = collection(db(), NOTES_COLLECTION_ENTRIES)
   const docRef = await addDoc(col, {
@@ -263,6 +311,7 @@ export async function createNote(payload: CreateNotePayload): Promise<NoteEntry>
     title,
     content: payload.content ?? '',
     format,
+    visibility,
     createdAt: now,
     updatedAt: now
   })
@@ -270,14 +319,14 @@ export async function createNote(payload: CreateNotePayload): Promise<NoteEntry>
   if (!created.exists()) {
     throw new Error('建立筆記失敗')
   }
-  return docToNote(created as QueryDocumentSnapshot<DocumentData>)
+  return docToNote(created)
 }
 
 /** 取得單一筆記 */
 export async function getNoteDetail(id: string): Promise<NoteEntry | null> {
   const snap = await getDoc(doc(db(), NOTES_COLLECTION_ENTRIES, id))
   if (!snap.exists()) return null
-  return docToNote(snap as QueryDocumentSnapshot<DocumentData>)
+  return docToNote(snap)
 }
 
 /** 更新筆記 */
@@ -313,14 +362,17 @@ export async function updateNote(
   if (payload.groupId !== undefined) {
     updates.groupId = payload.groupId
   }
+  if (payload.visibility !== undefined) {
+    updates.visibility = payload.visibility
+  }
 
   if (Object.keys(updates).length <= 1) {
-    return docToNote(snap as QueryDocumentSnapshot<DocumentData>)
+    return docToNote(snap)
   }
 
   await updateDoc(ref, updates)
   const after = await getDoc(ref)
-  return docToNote(after as QueryDocumentSnapshot<DocumentData>)
+  return docToNote(after)
 }
 
 /** 刪除筆記 */

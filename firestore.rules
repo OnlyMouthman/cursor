@@ -24,6 +24,43 @@ service cloud.firestore {
              getRoleSlug() in ['admin', 'super_admin'];
     }
 
+    /** Notes：與種子 RBAC 對齊，具 notes.edit 預設為 super_admin / admin / editor（非 role_permissions 即時查詢） */
+    function notesUserDocExistsAndActive() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (!('status' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data) ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active');
+    }
+
+    function canWriteNotesCollections() {
+      return notesUserDocExistsAndActive() &&
+        getRoleSlug() in ['super_admin', 'admin', 'editor'];
+    }
+
+    /** 未登入：僅可讀明確標為 public 的文件（缺 visibility 視同非公開，與前端預設 private 一致） */
+    function notesGuestReadAllowed() {
+      return 'visibility' in resource.data && resource.data.visibility == 'public';
+    }
+
+    function notesCreatePayloadValid() {
+      return 'visibility' in request.resource.data &&
+        request.resource.data.visibility in ['public', 'private'];
+    }
+
+    function notesUpdateVisibilityValid() {
+      return !('visibility' in request.resource.data) ||
+        request.resource.data.visibility in ['public', 'private'];
+    }
+
+    /**
+     * 已登入可讀 private：以角色 slug 近似「具 notes.view 或 notes.edit」（與預設種子一致：viewer 無、editor/admin/super_admin 有）。
+     * 若僅透過自訂角色授予 notes.view 且 slug 不在下列清單，Firestore 仍只放行 public，可能與前端 hasPermission 不一致，需日後以 custom claims 等補齊。
+     */
+    function notesAuthCanReadPrivateNotes() {
+      return notesUserDocExistsAndActive() &&
+        getRoleSlug() in ['super_admin', 'admin', 'editor'];
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && (
         userId == request.auth.uid ||
@@ -70,6 +107,20 @@ service cloud.firestore {
     match /menus/{menuId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && isAdminOrSuperAdmin();
+    }
+
+    match /notes_groups/{id} {
+      allow read: if notesGuestReadAllowed() || notesAuthCanReadPrivateNotes();
+      allow create: if canWriteNotesCollections() && notesCreatePayloadValid();
+      allow update: if canWriteNotesCollections() && notesUpdateVisibilityValid();
+      allow delete: if canWriteNotesCollections();
+    }
+
+    match /notes_entries/{id} {
+      allow read: if notesGuestReadAllowed() || notesAuthCanReadPrivateNotes();
+      allow create: if canWriteNotesCollections() && notesCreatePayloadValid();
+      allow update: if canWriteNotesCollections() && notesUpdateVisibilityValid();
+      allow delete: if canWriteNotesCollections();
     }
   }
 }

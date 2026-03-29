@@ -5,6 +5,9 @@
 
 export type NoteFormat = 'text' | 'markdown'
 
+/** 可見性：缺欄位之舊資料於前端／規則皆視為 private */
+export type NoteVisibility = 'public' | 'private'
+
 /** 分類（Firestore：notes_groups） */
 export interface NoteGroup {
   id: string
@@ -12,6 +15,7 @@ export interface NoteGroup {
   /** 根節點為 null */
   parentId: string | null
   sortOrder: number
+  visibility: NoteVisibility
   createdAt: Date
   updatedAt: Date
 }
@@ -28,6 +32,7 @@ export interface NoteEntry {
   title: string
   content: string
   format: NoteFormat
+  visibility: NoteVisibility
   createdAt: Date
   updatedAt: Date
 }
@@ -36,12 +41,15 @@ export interface CreateNoteGroupPayload {
   name: string
   parentId?: string | null
   sortOrder?: number
+  /** 預設 private */
+  visibility?: NoteVisibility
 }
 
 export interface UpdateNoteGroupPayload {
   name?: string
   parentId?: string | null
   sortOrder?: number
+  visibility?: NoteVisibility
 }
 
 export interface CreateNotePayload {
@@ -50,6 +58,8 @@ export interface CreateNotePayload {
   content?: string
   /** 預設 markdown */
   format?: NoteFormat
+  /** 預設 private */
+  visibility?: NoteVisibility
 }
 
 export interface UpdateNotePayload {
@@ -57,4 +67,5 @@ export interface UpdateNotePayload {
   content?: string
   format?: NoteFormat
   groupId?: string
+  visibility?: NoteVisibility
 }

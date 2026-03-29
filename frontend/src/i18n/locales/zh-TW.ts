@@ -61,7 +61,13 @@ export default {
     viewOnlyTitle: '目前為瀏覽模式',
     viewOnlyBody: '您的帳號目前沒有此模組的編輯權限。',
     signInToEditHint: '登入後可使用',
-    lockedActionTitle: '需要登入或權限'
+    lockedActionTitle: '需要登入或權限',
+    notesPublicOnlyTitle: '目前僅能瀏覽公開內容',
+    notesPublicOnlyBody:
+      '您的帳號沒有 Notes 檢視權限（notes.view），僅可見公開分類與公開筆記。如需讀取非公開資料，請向管理員申請權限。',
+    notesViewPrivateTitle: '可檢視完整筆記（唯讀）',
+    notesViewPrivateBody:
+      '您已具備讀取非公開內容的權限，但沒有編輯權限（notes.edit）。'
   },
   module: {
     stubHint: '此為模組骨架頁，尚未實作業務功能。',
@@ -128,10 +134,20 @@ export default {
     addGroup: '新增分類',
     addChildGroup: '子分類',
     addNote: '新增筆記',
-    noGroupSelected: '請先選取左側分類',
+    noGroupSelected: '請先於左側選擇分類',
+    noGroupSelectedHint: '選取分類後，此處會列出該分類下的筆記。',
     pickGroupFirst: '請先選取分類',
     emptyTree: '尚無分類，可使用「新增分類」建立',
+    emptyTreeGuest: '目前沒有任何公開分類可顯示。訪客僅能瀏覽公開內容。',
+    emptyTreePublicOnly:
+      '目前沒有可見的公開分類。若預期應有資料，您可能需要向管理員申請檢視權限（notes.view）以查看非公開分類。',
+    emptyTreeWithEdit: '尚未建立分類。請使用「新增分類」從最上層開始整理。',
+    emptyTreeViewEmpty: '目前沒有任何分類資料。若預期應有內容，請聯絡管理員。',
     emptyNotes: '此分類尚無筆記',
+    emptyNotesInGroup: '此分類目前沒有任何筆記。',
+    emptyNotesBrowseOnly:
+      '此分類下目前沒有可瀏覽的公開筆記。非公開筆記不會出現在目前檢視範圍內。',
+    emptyNotesWithEdit: '此分類尚無筆記，可使用上方的「新增筆記」建立。',
     hintAddRootGroup: '建立最上層分類',
     hintAddChildGroup: '在目前選取的分類下建立子分類',
     renameGroup: '重新命名分類',
@@ -147,6 +163,8 @@ export default {
     confirmDeleteGroup: '確定要刪除此分類？（若有子分類或筆記將無法刪除）',
     confirmDeleteNote: '確定要刪除此筆記？',
     selectNoteToEdit: '請從列表選取一則筆記，或按「新增筆記」',
+    selectNotePrompt: '請從中欄列表選取一則筆記，即可於此檢視內容。',
+    selectNotePromptCanEdit: '選取後可編輯與預覽；您也可以使用「新增筆記」建立內容。',
     noteTitle: '標題',
     contentPlaceholder: '內容（Markdown / 純文字）',
     modeEdit: '編輯',
@@ -159,7 +177,16 @@ export default {
     editorLoadErrorHint: '請改選其他筆記或從列表重新整理。',
     saveSuccess: '已儲存',
     saving: '儲存中…',
-    untitledNote: '未命名筆記'
+    untitledNote: '未命名筆記',
+    readOnlyEditorHint: '目前為唯讀模式；登入並具備編輯權限後即可修改筆記。',
+    previewEmptyReadOnly: '此筆記尚無內容。',
+    noteAccessDenied: '無法存取此筆記（可能為非公開內容）。',
+    visibilityLabel: '可見性',
+    visibilityPublic: '公開',
+    visibilityPrivate: '私有',
+    visibilityUpdateFailed: '可見性更新失敗。',
+    visIconPublicTitle: '公開：訪客可見此項目（仍須分類與筆記皆公開）',
+    visIconPrivateTitle: '私有：訪客與僅限公開瀏覽的帳號看不到'
   }
 }
 

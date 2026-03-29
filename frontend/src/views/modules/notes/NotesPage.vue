@@ -1,6 +1,6 @@
 <template>
   <div
-    class="notes-page -m-6 flex h-[calc(100vh-56px-3rem)] min-h-[320px] flex-col overflow-hidden rounded-lg border border-line bg-card"
+    class="notes-page -m-6 flex h-[calc(100vh-56px-3rem)] min-h-[320px] flex-col overflow-hidden rounded-xl border border-card-border bg-page shadow-sm ring-1 ring-black/[0.04]"
   >
     <NotesTextModal
       v-if="textModalOpen"
@@ -15,6 +15,9 @@
       <NoteGroupTreePanel
         :roots="groupTree"
         :selected-group-id="selectedGroupId"
+        :selected-group-visibility="selectedGroupVisibility"
+        :group-visibility-saving="groupVisibilitySaving"
+        :group-visibility-error="groupVisibilityError"
         :expanded-ids="expandedIds"
         :loading="treeLoading"
         :load-error="treeError"
@@ -25,6 +28,7 @@
         @add-child-group="openCreateChildModal"
         @rename-group="openRenameModal"
         @delete-group="onDeleteGroup"
+        @update-group-visibility="onGroupVisibilityChange"
       />
       <NoteListPanel
         :group-id="selectedGroupId"
@@ -43,6 +47,8 @@
         :edit-mode="editMode"
         :has-note="!!selectedNoteId"
         :can-edit="canEdit"
+        :note-visibility="draftNoteVisibility"
+        :visibility-updating="noteVisibilitySaving"
         :saving="saving"
         :detail-loading="editorDetailLoading"
         :load-error="editorLoadError"
@@ -51,6 +57,7 @@
         @update:title="draftTitle = $event"
         @update:content="draftContent = $event"
         @update:edit-mode="editMode = $event"
+        @change-note-visibility="onNoteVisibilityChange"
         @save="onSaveNote"
       />
     </div>
@@ -58,7 +65,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { FirebaseError } from 'firebase/app'
+import { storeToRefs } from 'pinia'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createGroup,
@@ -72,7 +81,13 @@ import {
   updateNote
 } from '@/api/firebase/notes'
 import { usePageAccess } from '@/composables/usePageAccess'
-import type { NoteEntry, NoteGroupTreeNode } from '@/types/notes'
+import { usePermissionStore } from '@/stores/permission'
+import { useUserStore } from '@/stores/user'
+import type {
+  NoteEntry,
+  NoteGroupTreeNode,
+  NoteVisibility
+} from '@/types/notes'
 import NoteEditorPanel from './components/NoteEditorPanel.vue'
 import NoteGroupTreePanel from './components/NoteGroupTreePanel.vue'
 import NoteListPanel from './components/NoteListPanel.vue'
@@ -80,6 +95,9 @@ import NotesTextModal from './components/NotesTextModal.vue'
 
 const { t } = useI18n()
 const { canEdit } = usePageAccess()
+const userStore = useUserStore()
+const permissionStore = usePermissionStore()
+const { isAuthenticated } = storeToRefs(userStore)
 
 const groupTree = ref<NoteGroupTreeNode[]>([])
 const treeLoading = ref(false)
@@ -95,7 +113,18 @@ const selectedNoteId = ref<string | null>(null)
 /** 右欄編輯草稿（與伺服器同步於載入成功或儲存成功後） */
 const draftTitle = ref('')
 const draftContent = ref('')
+const draftNoteVisibility = ref<NoteVisibility>('private')
+const noteVisibilitySaving = ref(false)
+const groupVisibilitySaving = ref(false)
+const groupVisibilityError = ref<string | null>(null)
 const editMode = ref<'edit' | 'preview'>('edit')
+watch(
+  () => canEdit.value,
+  editOk => {
+    if (!editOk) editMode.value = 'preview'
+  },
+  { immediate: true }
+)
 const saving = ref(false)
 const editorDetailLoading = ref(false)
 const editorLoadError = ref<string | null>(null)
@@ -150,6 +179,24 @@ function findGroupName(
   }
   return undefined
 }
+
+function findGroupVisibility(
+  nodes: NoteGroupTreeNode[],
+  id: string
+): NoteVisibility | null {
+  for (const n of nodes) {
+    if (n.id === id) return n.visibility
+    const inner = findGroupVisibility(n.children, id)
+    if (inner !== null) return inner
+  }
+  return null
+}
+
+const selectedGroupVisibility = computed((): NoteVisibility | null => {
+  const id = selectedGroupId.value
+  if (!id) return null
+  return findGroupVisibility(groupTree.value, id)
+})
 
 function collectExpandableIds(nodes: NoteGroupTreeNode[]): Set<string> {
   const s = new Set<string>()
@@ -243,6 +290,7 @@ function closeTextModal() {
 }
 
 function openCreateRootModal() {
+  if (!canEdit.value) return
   textModalMode.value = 'create-root'
   textModalHeading.value = t('notes.modalCreateRoot')
   textModalValue.value = ''
@@ -251,7 +299,7 @@ function openCreateRootModal() {
 }
 
 function openCreateChildModal() {
-  if (!selectedGroupId.value) return
+  if (!canEdit.value || !selectedGroupId.value) return
   textModalMode.value = 'create-child'
   textModalHeading.value = t('notes.modalCreateChild')
   textModalValue.value = ''
@@ -260,6 +308,7 @@ function openCreateChildModal() {
 }
 
 function openRenameModal(id: string) {
+  if (!canEdit.value) return
   const name = findGroupName(groupTree.value, id) ?? ''
   textModalMode.value = 'rename'
   renameTargetId.value = id
@@ -270,6 +319,10 @@ function openRenameModal(id: string) {
 }
 
 async function onTextModalConfirm(value: string) {
+  if (!canEdit.value) {
+    closeTextModal()
+    return
+  }
   const mode = textModalMode.value
   treeError.value = null
   try {
@@ -306,6 +359,7 @@ async function onTextModalConfirm(value: string) {
 }
 
 async function onDeleteGroup(id: string) {
+  if (!canEdit.value) return
   if (!window.confirm(t('notes.confirmDeleteGroup'))) return
   treeError.value = null
   try {
@@ -354,6 +408,7 @@ async function onAddNote() {
 }
 
 async function onDeleteNote(id: string) {
+  if (!canEdit.value) return
   if (!window.confirm(t('notes.confirmDeleteNote'))) return
   notesError.value = null
   try {
@@ -367,6 +422,45 @@ async function onDeleteNote(id: string) {
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     notesError.value = msg
+  }
+}
+
+async function onNoteVisibilityChange(v: NoteVisibility) {
+  const nid = selectedNoteId.value
+  if (!nid || !canEdit.value) return
+  const prev = draftNoteVisibility.value
+  editorSaveError.value = null
+  draftNoteVisibility.value = v
+  noteVisibilitySaving.value = true
+  try {
+    await updateNote(nid, { visibility: v })
+    await loadNotesForGroup()
+    const refreshed = await getNoteDetail(nid)
+    if (refreshed && selectedNoteId.value === nid) {
+      draftNoteVisibility.value = refreshed.visibility
+    }
+  } catch (e: unknown) {
+    draftNoteVisibility.value = prev
+    const msg = e instanceof Error ? e.message : String(e)
+    editorSaveError.value = `${t('notes.visibilityUpdateFailed')} ${msg}`
+  } finally {
+    noteVisibilitySaving.value = false
+  }
+}
+
+async function onGroupVisibilityChange(v: NoteVisibility) {
+  const gid = selectedGroupId.value
+  if (!gid || !canEdit.value) return
+  groupVisibilityError.value = null
+  groupVisibilitySaving.value = true
+  try {
+    await updateGroup(gid, { visibility: v })
+    await loadGroupTree({ preserveExpansion: true })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    groupVisibilityError.value = `${t('notes.visibilityUpdateFailed')} ${msg}`
+  } finally {
+    groupVisibilitySaving.value = false
   }
 }
 
@@ -386,6 +480,7 @@ async function onSaveNote() {
       if (refreshed && selectedNoteId.value === nid) {
         draftTitle.value = refreshed.title
         draftContent.value = refreshed.content
+        draftNoteVisibility.value = refreshed.visibility
       }
     } catch {
       /* 列表已更新；草稿維持使用者剛儲存的內容 */
@@ -403,9 +498,11 @@ watch(selectedGroupId, () => {
   selectedNoteId.value = null
   draftTitle.value = ''
   draftContent.value = ''
-  editMode.value = 'edit'
+  draftNoteVisibility.value = 'private'
+  editMode.value = canEdit.value ? 'edit' : 'preview'
   editorLoadError.value = null
   editorSaveError.value = null
+  groupVisibilityError.value = null
   saveSuccessVisible.value = false
   clearSaveSuccessTimer()
   loadNotesForGroup()
@@ -423,12 +520,14 @@ watch(selectedNoteId, async id => {
     editorDetailLoading.value = false
     draftTitle.value = ''
     draftContent.value = ''
+    draftNoteVisibility.value = 'private'
     return
   }
 
   editorDetailLoading.value = true
   draftTitle.value = ''
   draftContent.value = ''
+  draftNoteVisibility.value = 'private'
 
   try {
     const n = await getNoteDetail(id)
@@ -439,8 +538,14 @@ watch(selectedNoteId, async id => {
     }
     draftTitle.value = n.title
     draftContent.value = n.content
+    draftNoteVisibility.value = n.visibility
   } catch (e: unknown) {
     if (seq !== noteDetailLoadSeq) return
+    if (e instanceof FirebaseError && e.code === 'permission-denied') {
+      notesError.value = t('notes.noteAccessDenied')
+      selectedNoteId.value = null
+      return
+    }
     editorLoadError.value =
       e instanceof Error ? e.message : String(e)
   } finally {
@@ -450,9 +555,18 @@ watch(selectedNoteId, async id => {
   }
 })
 
-onMounted(() => {
-  loadGroupTree()
-})
+watch(
+  () => ({
+    auth: isAuthenticated.value,
+    uid: userStore.currentUser?.uid ?? null,
+    permLoadedFor: permissionStore.loadedForUid
+  }),
+  () => {
+    loadGroupTree({ preserveExpansion: true })
+    loadNotesForGroup()
+  },
+  { immediate: true }
+)
 
 onUnmounted(() => {
   clearSaveSuccessTimer()

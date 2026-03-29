@@ -1,19 +1,22 @@
 <template>
   <section
-    class="flex min-w-0 flex-1 flex-col bg-card"
+    class="flex min-w-0 flex-1 flex-col border-l border-card-border bg-white"
     :aria-label="$t('notes.editorSection')"
   >
     <header
-      class="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-3 py-2"
+      class="flex shrink-0 flex-wrap items-center gap-3 border-b border-line bg-page/40 px-4 py-3"
     >
-      <div class="flex rounded-md border border-line p-0.5">
+      <div
+        v-if="canEdit"
+        class="flex rounded-lg border border-line bg-white p-0.5 shadow-sm"
+      >
         <button
           type="button"
-          class="rounded px-2 py-1 text-xs font-medium transition"
+          class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
           :class="
             editMode === 'edit'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-ink-muted hover:bg-soft'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-ink-muted hover:bg-page hover:text-ink-strong'
           "
           :disabled="!canUseEditor"
           @click="setMode('edit')"
@@ -22,11 +25,11 @@
         </button>
         <button
           type="button"
-          class="rounded px-2 py-1 text-xs font-medium transition"
+          class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
           :class="
             editMode === 'preview'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-ink-muted hover:bg-soft'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-ink-muted hover:bg-page hover:text-ink-strong'
           "
           :disabled="!canUseEditor"
           @click="setMode('preview')"
@@ -34,6 +37,12 @@
           {{ $t('notes.modePreview') }}
         </button>
       </div>
+      <span
+        v-else
+        class="rounded-lg border border-line bg-page/60 px-3 py-1.5 text-xs font-medium text-ink-muted"
+      >
+        {{ $t('notes.modePreview') }}
+      </span>
       <p
         v-if="saveSuccess"
         class="text-xs font-medium text-emerald-600 dark:text-emerald-400"
@@ -46,7 +55,7 @@
       </p>
       <button
         type="button"
-        class="btn-primary ml-auto py-1.5 text-xs disabled:opacity-50"
+        class="btn-primary ml-auto min-w-[5rem] px-4 py-2 text-xs font-semibold shadow-md disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
         :disabled="!canEdit || !hasNote || !canSave"
         @click="$emit('save')"
       >
@@ -54,48 +63,105 @@
       </button>
     </header>
 
-    <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-3">
-      <p v-if="!hasNote" class="text-sm text-ink-muted">
-        {{ $t('notes.selectNoteToEdit') }}
-      </p>
+    <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-4">
+      <div v-if="!hasNote" class="text-sm leading-relaxed text-ink-muted">
+        <p class="font-medium text-ink-strong">
+          {{ canEdit ? $t('notes.selectNotePromptCanEdit') : $t('notes.selectNotePrompt') }}
+        </p>
+      </div>
 
       <template v-else-if="detailLoading">
         <p class="text-sm text-ink-muted">{{ $t('notes.editorLoading') }}</p>
       </template>
 
       <template v-else-if="loadError">
-        <p class="text-sm text-red-600 dark:text-red-400">{{ loadError }}</p>
-        <p class="text-xs text-ink-muted">{{ $t('notes.editorLoadErrorHint') }}</p>
+        <p class="text-sm font-medium text-red-600 dark:text-red-400">{{ loadError }}</p>
+        <p class="text-xs leading-relaxed text-ink-muted">{{ $t('notes.editorLoadErrorHint') }}</p>
       </template>
 
       <template v-else>
-        <label class="block shrink-0">
+        <p
+          v-if="!canEdit && hasNote && !detailLoading && !loadError"
+          class="shrink-0 rounded-lg border border-line bg-page/50 px-3 py-2 text-xs leading-relaxed text-ink-muted"
+        >
+          {{ $t('notes.readOnlyEditorHint') }}
+        </p>
+
+        <div
+          v-if="hasNote"
+          class="flex shrink-0 flex-wrap items-center gap-2 text-xs"
+        >
+          <NotesMsIcon
+            :name="noteVisibility === 'public' ? 'public' : 'lock'"
+            size="sm"
+            :tone="noteVisibility === 'public' ? 'success' : 'muted'"
+          />
+          <span class="font-medium text-ink-muted">{{ $t('notes.visibilityLabel') }}</span>
+          <template v-if="canEdit">
+            <select
+              :value="noteVisibility"
+              class="max-w-[10rem] rounded-lg border border-line bg-white px-2 py-1.5 text-ink-strong shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="visibilityUpdating || !canUseEditor"
+              @change="onNoteVisibilitySelect($event)"
+            >
+              <option value="public">{{ $t('notes.visibilityPublic') }}</option>
+              <option value="private">{{ $t('notes.visibilityPrivate') }}</option>
+            </select>
+          </template>
+          <span
+            v-else
+            class="font-medium text-ink-strong"
+          >
+            {{
+              noteVisibility === 'public'
+                ? $t('notes.visibilityPublic')
+                : $t('notes.visibilityPrivate')
+            }}
+          </span>
+        </div>
+
+        <div
+          v-if="canEdit"
+          class="block shrink-0"
+        >
           <span class="sr-only">{{ $t('notes.noteTitle') }}</span>
           <input
             v-model="titleModel"
             type="text"
-            class="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-strong outline-none ring-focus focus:ring-2 disabled:opacity-60"
-            :disabled="!canEdit || editMode === 'preview'"
+            class="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-base font-semibold text-ink-strong shadow-sm outline-none ring-focus focus:border-primary/40 focus:ring-2 disabled:opacity-60"
+            :disabled="editMode === 'preview'"
             :placeholder="$t('notes.noteTitle')"
           />
-        </label>
+        </div>
+        <div
+          v-else-if="hasNote && !detailLoading && !loadError"
+          class="shrink-0 rounded-lg border border-line bg-page/40 px-3 py-2.5 text-base font-semibold text-ink-strong"
+        >
+          {{ title || $t('notes.noteTitle') }}
+        </div>
 
         <div class="min-h-0 flex-1 overflow-hidden">
           <textarea
+            v-if="canEdit"
             v-show="editMode === 'edit'"
             v-model="contentModel"
-            class="h-full min-h-[200px] w-full resize-none rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm text-ink-main outline-none ring-focus focus:ring-2 disabled:opacity-60"
-            :disabled="!canEdit"
+            class="h-full min-h-[220px] w-full resize-none rounded-lg border border-line bg-white px-4 py-3 font-mono text-sm leading-relaxed text-ink-main shadow-sm outline-none ring-focus focus:border-primary/35 focus:ring-2"
             :placeholder="$t('notes.contentPlaceholder')"
           />
           <div
-            v-show="editMode === 'preview'"
-            class="notes-md-preview h-full min-h-[200px] overflow-y-auto rounded-md border border-dashed border-line bg-soft px-3 py-3 text-sm text-ink-main"
+            v-show="!canEdit || editMode === 'preview'"
+            class="notes-md-preview notes-md-preview-card h-full min-h-[220px] overflow-y-auto rounded-lg border border-line bg-white px-4 py-4 text-[15px] leading-relaxed text-ink-main shadow-sm"
           >
-            <p v-if="!previewHasContent" class="text-sm text-ink-muted">
-              {{ $t('notes.previewEmpty') }}
+            <p
+              v-if="!previewHasContent"
+              class="text-sm text-ink-muted"
+            >
+              {{ canEdit ? $t('notes.previewEmpty') : $t('notes.previewEmptyReadOnly') }}
             </p>
-            <div v-else v-html="previewHtml" />
+            <div
+              v-else
+              v-html="previewHtml"
+            />
           </div>
         </div>
       </template>
@@ -107,6 +173,8 @@
 /** 右欄展示：表單／預覽；不呼叫 Firebase，資料皆由 NotesPage 以 props 注入。 */
 import { computed } from 'vue'
 import { markdownToSafeHtml } from '@/utils/markdownPreview'
+import type { NoteVisibility } from '@/types/notes'
+import NotesMsIcon from './NotesMsIcon.vue'
 
 const props = defineProps<{
   title: string
@@ -115,6 +183,10 @@ const props = defineProps<{
   hasNote: boolean
   canEdit: boolean
   saving: boolean
+  /** 目前筆記可見性（有選取筆記時由父層同步） */
+  noteVisibility: NoteVisibility
+  /** 正在寫入可見性 */
+  visibilityUpdating: boolean
   /** 正在向 Firestore 載入筆記本文 */
   detailLoading: boolean
   /** 載入失敗（含不存在） */
@@ -129,15 +201,22 @@ const emit = defineEmits<{
   'update:title': [v: string]
   'update:content': [v: string]
   'update:editMode': [v: 'edit' | 'preview']
+  'change-note-visibility': [v: NoteVisibility]
   save: []
 }>()
+
+function onNoteVisibilitySelect(ev: Event) {
+  const el = ev.target as HTMLSelectElement
+  const v = el.value === 'public' ? 'public' : 'private'
+  emit('change-note-visibility', v)
+}
 
 const canUseEditor = computed(
   () => props.hasNote && !props.detailLoading && !props.loadError
 )
 
 const canSave = computed(
-  () => canUseEditor.value && !props.saving
+  () => canUseEditor.value && !props.saving && !props.visibilityUpdating
 )
 
 const titleModel = computed({
@@ -161,6 +240,15 @@ function setMode(m: 'edit' | 'preview') {
 </script>
 
 <style scoped>
+.notes-md-preview-card :deep(pre) {
+  background-color: rgba(37, 38, 39, 0.045);
+  border-color: var(--color-border);
+}
+.notes-md-preview-card :deep(p code),
+.notes-md-preview-card :deep(li code) {
+  background-color: rgba(37, 38, 39, 0.06);
+}
+
 .notes-md-preview :deep(h1),
 .notes-md-preview :deep(h2),
 .notes-md-preview :deep(h3),

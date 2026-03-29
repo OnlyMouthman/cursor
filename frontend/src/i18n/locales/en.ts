@@ -61,7 +61,13 @@ export default {
     viewOnlyTitle: 'View-only mode',
     viewOnlyBody: 'Your account does not have edit permission for this module.',
     signInToEditHint: 'Sign in to use',
-    lockedActionTitle: 'Sign in or permission required'
+    lockedActionTitle: 'Sign in or permission required',
+    notesPublicOnlyTitle: 'Public content only',
+    notesPublicOnlyBody:
+      'Your account does not have Notes view permission (notes.view). You can only see public groups and notes. Ask an admin if you need access to private content.',
+    notesViewPrivateTitle: 'Full read access (view only)',
+    notesViewPrivateBody:
+      'You can read private groups and notes, but you do not have edit permission (notes.edit).'
   },
   module: {
     stubHint: 'Module shell only — no business logic yet.',
@@ -129,9 +135,19 @@ export default {
     addChildGroup: 'Child group',
     addNote: 'New note',
     noGroupSelected: 'Select a group on the left',
+    noGroupSelectedHint: 'Notes for that group will appear here.',
     pickGroupFirst: 'Select a group first',
     emptyTree: 'No groups yet — use “Add group”',
+    emptyTreeGuest: 'No public groups to show. Visitors can only see public content.',
+    emptyTreePublicOnly:
+      'No public groups visible. If you expect data here, you may need notes.view permission to see private groups.',
+    emptyTreeWithEdit: 'No groups yet. Use “Add group” to get started.',
+    emptyTreeViewEmpty: 'No groups are available. Contact an admin if you expect data here.',
     emptyNotes: 'No notes in this group',
+    emptyNotesInGroup: 'There are no notes in this group yet.',
+    emptyNotesBrowseOnly:
+      'No public notes to show in this group. Private notes are hidden in your current view.',
+    emptyNotesWithEdit: 'No notes yet. Use “New note” above to add one.',
     hintAddRootGroup: 'Create a top-level group',
     hintAddChildGroup: 'Create a subgroup under the selected group',
     renameGroup: 'Rename group',
@@ -148,6 +164,8 @@ export default {
       'Delete this group? (Cannot delete if it has subgroups or notes.)',
     confirmDeleteNote: 'Delete this note?',
     selectNoteToEdit: 'Pick a note from the list or create one',
+    selectNotePrompt: 'Pick a note from the list to view it here.',
+    selectNotePromptCanEdit: 'You can edit and preview after selecting, or use “New note” to create one.',
     noteTitle: 'Title',
     contentPlaceholder: 'Content (Markdown / plain text)',
     modeEdit: 'Edit',
@@ -160,7 +178,17 @@ export default {
     editorLoadErrorHint: 'Select another note or refresh the list.',
     saveSuccess: 'Saved',
     saving: 'Saving…',
-    untitledNote: 'Untitled note'
+    untitledNote: 'Untitled note',
+    readOnlyEditorHint:
+      'Read-only. Sign in with edit permission to change this note.',
+    previewEmptyReadOnly: 'This note has no content yet.',
+    noteAccessDenied: 'You do not have access to this note (it may be private).',
+    visibilityLabel: 'Visibility',
+    visibilityPublic: 'Public',
+    visibilityPrivate: 'Private',
+    visibilityUpdateFailed: 'Could not update visibility.',
+    visIconPublicTitle: 'Public: visible to visitors when the group is also public',
+    visIconPrivateTitle: 'Private: hidden from visitors and public-only accounts'
   }
 }
 
