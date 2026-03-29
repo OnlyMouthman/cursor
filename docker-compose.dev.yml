@@ -13,7 +13,8 @@ services:
       - NODE_ENV=development
     env_file:
       - ./frontend/.env.development
-    command: npm run dev
+    # 與匿名卷 /app/node_modules 搭配：每次啟動依 package.json 補齊依賴，避免主機新增套件後容器仍缺模組（如 dompurify、marked）
+    command: sh -c "npm install && npm run dev"
     networks:
       - web-network
 

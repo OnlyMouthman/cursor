@@ -15,27 +15,28 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,vue,js,jsx,json,css,scss,md}\""
   },
   "dependencies": {
-    "vue": "^3.4.0",
-    "vue-router": "^4.2.5",
+    "dompurify": "^3.3.3",
+    "firebase": "^10.7.1",
+    "marked": "^14.1.4",
     "pinia": "^2.1.7",
+    "vue": "^3.4.0",
     "vue-i18n": "^9.8.0",
-    "firebase": "^10.7.1"
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/dompurify": "^3.0.5",
+    "@types/node": "^20.10.6",
     "@vitejs/plugin-vue": "^5.0.0",
     "@vue/test-utils": "^2.4.3",
-    "@playwright/test": "^1.40.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "jsdom": "^23.0.1",
+    "postcss": "^8.4.32",
+    "prettier": "^3.1.1",
+    "tailwindcss": "^3.4.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
-    "vitest": "^1.1.0",
-    "jsdom": "^23.0.1",
-    "tailwindcss": "^3.4.0",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32",
-    "@types/node": "^20.10.6",
-    "eslint": "^8.56.0",
-    "prettier": "^3.1.1"
+    "vitest": "^1.1.0"
   }
 }
-
-
